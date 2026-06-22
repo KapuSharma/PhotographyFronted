@@ -1,0 +1,259 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* =====================================================================
+   HOI Photographer — design tokens
+   All colors live here as variables. Reference them via Tailwind
+   utilities (bg-brand-600, text-brand-700, bg-background, ...).
+   Never hard-code a hex anywhere else.
+   ===================================================================== */
+
+:root {
+  /* Page surface (prototype body bg + slate text) */
+  --background: #f6f7f9;
+  --foreground: #0f172a;
+
+  /* Brand — teal scale (prototype brand.50 → brand.900) */
+  --brand-50: #f0fdfa;
+  --brand-100: #ccfbf1;
+  --brand-200: #99f6e4;
+  --brand-300: #5eead4;
+  --brand-400: #2dd4bf;
+  --brand-500: #14b8a6;
+  --brand-600: #0d9488;
+  --brand-700: #0f766e;
+  --brand-800: #115e59;
+  --brand-900: #134e4a;
+
+  /* shadcn semantic tokens */
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: var(--brand-600);
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9; /* slate-100 */
+  --secondary-foreground: #0f172a;
+  --muted: #f1f5f9; /* slate-100 */
+  --muted-foreground: #64748b; /* slate-500 */
+  --accent: var(--brand-50);
+  --accent-foreground: var(--brand-700);
+  --destructive: #e11d48; /* rose-600 */
+  --destructive-foreground: #ffffff;
+  --border: #e2e8f0; /* slate-200 */
+  --input: #e2e8f0; /* slate-200 */
+  --ring: var(--brand-400);
+
+  --radius: 0.75rem;
+}
+
+/* =====================================================================
+   Template themes — flip the design tokens per website template.
+   The site layout sets data-template on the page root, so every page,
+   card, border and text colour re-themes automatically.
+   Add a new template by adding one [data-template="slug"] block here.
+   (Aurora is the light default defined in :root above.)
+   ===================================================================== */
+[data-template="noir"] {
+  --background: #0b0b0d;        /* near-black page surface */
+  --foreground: #ece7db;        /* warm off-white text */
+
+  /* Brand — gold scale (replaces teal) */
+  --brand-50:  #211b0e;
+  --brand-100: #2c2410;
+  --brand-200: #4a3d18;
+  --brand-300: #7a6526;
+  --brand-400: #e2c04a;
+  --brand-500: #c9a227;
+  --brand-600: #d4af37;
+  --brand-700: #e2c04a;
+  --brand-800: #b8932a;
+  --brand-900: #8a6e1f;
+
+  --card: #131316;
+  --card-foreground: #ece7db;
+  --popover: #131316;
+  --popover-foreground: #ece7db;
+  --primary: var(--brand-600);
+  --primary-foreground: #14110a; /* dark text on gold */
+  --secondary: #1b1b1f;
+  --secondary-foreground: #ece7db;
+  --muted: #1b1b1f;
+  --muted-foreground: #9c968a;   /* warm grey for secondary text */
+  --accent: var(--brand-50);
+  --accent-foreground: var(--brand-700);
+  --border: #2a2a30;
+  --input: #2a2a30;
+  --ring: var(--brand-400);
+}
+
+/* Heritage Elegance — warm ivory fine-art archive (light, amber accents). */
+[data-template="heritage"] {
+  --background: #fbf9f4;
+  --foreground: #1c1816;
+
+  --brand-50:  #fdf6ec;
+  --brand-100: #fbe6cf;
+  --brand-200: #f6cd9c;
+  --brand-300: #e9a86a;
+  --brand-400: #d97706;
+  --brand-500: #b45309;
+  --brand-600: #92400e;
+  --brand-700: #7c360b;
+  --brand-800: #6b2f0a;
+  --brand-900: #532508;
+
+  --card: #ffffff;
+  --card-foreground: #1c1816;
+  --popover: #ffffff;
+  --popover-foreground: #1c1816;
+  --primary: var(--brand-600);
+  --primary-foreground: #fbf9f4;
+  --secondary: #faf6ee;
+  --secondary-foreground: #1c1816;
+  --muted: #faf6ee;
+  --muted-foreground: #7c756f;
+  --accent: var(--brand-50);
+  --accent-foreground: var(--brand-700);
+  --border: #e7e0d3;
+  --input: #e7e0d3;
+  --ring: var(--brand-400);
+}
+
+/* Alpenglow — sunlit botanical off-white (light, deep forest-green accents). */
+[data-template="alpenglow"] {
+  --background: #fbf9f6;
+  --foreground: #1c3027;
+
+  --brand-50:  #e8ede5;
+  --brand-100: #d8e2d6;
+  --brand-200: #b9cab7;
+  --brand-300: #8fab8c;
+  --brand-400: #3f6553;
+  --brand-500: #2e4a3e;
+  --brand-600: #233c31;
+  --brand-700: #1c3027;
+  --brand-800: #16261f;
+  --brand-900: #101c17;
+
+  --card: #ffffff;
+  --card-foreground: #1c3027;
+  --popover: #ffffff;
+  --popover-foreground: #1c3027;
+  --primary: var(--brand-600);
+  --primary-foreground: #ffffff;
+  --secondary: #f4f6f3;
+  --secondary-foreground: #1c3027;
+  --muted: #f4f6f3;
+  --muted-foreground: #56655c;
+  --accent: var(--brand-50);
+  --accent-foreground: var(--brand-700);
+  --border: #e5e2dc;
+  --input: #e5e2dc;
+  --ring: var(--brand-400);
+}
+
+@theme inline {
+  /* Map CSS vars to Tailwind color utilities */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-brand-50: var(--brand-50);
+  --color-brand-100: var(--brand-100);
+  --color-brand-200: var(--brand-200);
+  --color-brand-300: var(--brand-300);
+  --color-brand-400: var(--brand-400);
+  --color-brand-500: var(--brand-500);
+  --color-brand-600: var(--brand-600);
+  --color-brand-700: var(--brand-700);
+  --color-brand-800: var(--brand-800);
+  --color-brand-900: var(--brand-900);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* Hero crossfade + marquee from the prototype */
+  --animate-hero: heroCycle 16s infinite;
+  --animate-marquee: marquee 26s linear infinite;
+
+  @keyframes heroCycle {
+    0% { opacity: 0; transform: scale(1.06); }
+    4% { opacity: 1; }
+    22% { opacity: 1; }
+    28% { opacity: 0; }
+    100% { opacity: 0; transform: scale(1); }
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@layer base {
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  }
+  ::-webkit-scrollbar { height: 8px; width: 8px; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+}
+
+/* Hero crossfade: 4 stacked images, staggered */
+.hero-fade > img { opacity: 0; animation: var(--animate-hero); }
+.hero-fade > img:nth-child(1) { animation-delay: 0s; }
+.hero-fade > img:nth-child(2) { animation-delay: 4s; }
+.hero-fade > img:nth-child(3) { animation-delay: 8s; }
+.hero-fade > img:nth-child(4) { animation-delay: 12s; }
+
+.marquee { animation: var(--animate-marquee); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, .hero-fade > img { animation: none !important; transition: none !important; }
+  .hero-fade > img { opacity: 1; }
+}
+
+/* Rich-text content rendered from the CMS description editor (HTML). */
+.rich-content h1 { font-size: 1.6rem; font-weight: 700; line-height: 1.25; margin: 0.6em 0 0.35em; color: var(--foreground); }
+.rich-content h2 { font-size: 1.35rem; font-weight: 700; line-height: 1.3; margin: 0.6em 0 0.35em; color: var(--foreground); }
+.rich-content h3 { font-size: 1.15rem; font-weight: 700; line-height: 1.35; margin: 0.6em 0 0.35em; color: var(--foreground); }
+.rich-content h4, .rich-content h5, .rich-content h6 { font-weight: 700; margin: 0.6em 0 0.35em; color: var(--foreground); }
+.rich-content p { margin: 0.5em 0; }
+.rich-content ul { list-style: disc; padding-left: 1.5em; margin: 0.5em 0; }
+.rich-content ol { list-style: decimal; padding-left: 1.5em; margin: 0.5em 0; }
+.rich-content li { margin: 0.2em 0; }
+.rich-content a { color: var(--brand-600); text-decoration: underline; }
+.rich-content img { max-width: 100%; height: auto; border-radius: 12px; margin: 0.6em 0; }
+.rich-content blockquote { margin: 0.6em 0; padding: 0.3em 0 0.3em 1em; border-left: 3px solid var(--brand-300); color: var(--muted-foreground); font-style: italic; }
+.rich-content hr { border: none; border-top: 1px solid var(--border); margin: 1em 0; }
+.rich-content strong { font-weight: 700; }
+.rich-content em { font-style: italic; }

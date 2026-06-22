@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="200" viewBox="0 0 320 200" fill="none">
+  <rect width="320" height="200" fill="#FBF9F4"/>
+  <rect x="0" y="0" width="320" height="28" fill="#1C1816"/>
+  <text x="14" y="19" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="2" fill="#f59e0b">&#9670; ARIA.STUDIO ARCHIVE</text>
+  <rect x="232" y="9" width="74" height="12" fill="#92400e"/>
+  <text x="44" y="62" font-family="'JetBrains Mono', monospace" font-size="8" letter-spacing="2" fill="#92400e">// FINE-ART PHOTOGRAPHER</text>
+  <text x="42" y="92" font-family="Georgia, serif" font-size="22" fill="#1C1816">Heritage</text>
+  <text x="148" y="92" font-family="Georgia, serif" font-size="22" font-style="italic" fill="#92400e">storytelling</text>
+  <rect x="42" y="108" width="150" height="7" rx="2" fill="#7C756F" opacity="0.5"/>
+  <rect x="42" y="122" width="110" height="7" rx="2" fill="#7C756F" opacity="0.35"/>
+  <rect x="42" y="150" width="92" height="22" fill="#92400e"/>
+  <rect x="222" y="44" width="84" height="128" fill="#ffffff" stroke="#E7E0D3"/>
+  <rect x="230" y="52" width="68" height="92" fill="#FAF6EE" stroke="#E7E0D3"/>
+  <text x="230" y="162" font-family="'JetBrains Mono', monospace" font-size="6" letter-spacing="1" fill="#7C756F">PLATE No. 101</text>
+</svg>
