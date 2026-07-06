@@ -4,8 +4,10 @@ import type { NextRequest } from "next/server";
 /* Resolves the tenant domain for every request and exposes it as the
    `x-tenant-domain` request header. This lets server components that can't read
    searchParams (notably the layout, for the header/footer) still know which
-   tenant they're rendering. Order: ?domain= override → real host. */
-export function middleware(request: NextRequest) {
+   tenant they're rendering. Order: ?domain= override → real host.
+
+   Next.js 16 renamed the "middleware" file convention to "proxy". */
+export function proxy(request: NextRequest) {
   const qDomain = request.nextUrl.searchParams.get("domain")?.trim();
   const host = (request.headers.get("host") || "").split(":")[0];
   const isLocal = !host || host === "localhost" || host === "127.0.0.1";

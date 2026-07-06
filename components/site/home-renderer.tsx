@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-import { getTemplate, TEMPLATES } from "@/templates/registry";
+import { getTemplate, TEMPLATES, DEFAULT_TEMPLATE } from "@/templates/registry";
 import { useSiteStore } from "@/store/use-site-store";
 import type { SiteContent } from "@/templates/types";
 
@@ -30,7 +30,9 @@ export function HomeRenderer({
   }, [serverTemplate, setServerTemplate, setOverride]);
 
   const active = override ?? serverTemplate;
-  const { Home } = getTemplate(active);
+  // Home is optional (templates can be built page-by-page) — fall back to the
+  // default template's Home if the active one hasn't defined one yet.
+  const Home = getTemplate(active).Home ?? getTemplate(DEFAULT_TEMPLATE).Home!;
 
   return <Home content={content} />;
 }

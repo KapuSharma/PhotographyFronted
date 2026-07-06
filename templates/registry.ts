@@ -7,6 +7,15 @@ import { heritageManifest } from "@/templates/heritage/manifest";
 import HeritageHome from "@/templates/heritage/home";
 import { alpenglowManifest } from "@/templates/alpenglow/manifest";
 import AlpenglowHome from "@/templates/alpenglow/home";
+import { ariaManifest } from "@/templates/aria/manifest";
+import AriaAbout from "@/templates/aria/about";
+import AriaGallery from "@/templates/aria/gallery";
+import AriaPackages from "@/templates/aria/packages";
+import AriaContact from "@/templates/aria/contact";
+import AriaReviews from "@/templates/aria/reviews";
+import AriaBlog from "@/templates/aria/blog";
+import AriaServices from "@/templates/aria/services";
+import AriaHome from "@/templates/aria/home";
 
 /* =====================================================================
    Template registry — the "phone book".
@@ -21,6 +30,8 @@ export const TEMPLATES: Record<string, Template> = {
   noir: { manifest: noirManifest, Home: NoirHome },
   heritage: { manifest: heritageManifest, Home: HeritageHome },
   alpenglow: { manifest: alpenglowManifest, Home: AlpenglowHome },
+  // "aria" — new premium template, built page-by-page (frontend first).
+  aria: { manifest: ariaManifest, Home: AriaHome, About: AriaAbout, Gallery: AriaGallery, Packages: AriaPackages, Contact: AriaContact, Reviews: AriaReviews, Blog: AriaBlog, Services: AriaServices },
 };
 
 /** All templates as an array — handy for the dashboard gallery. */

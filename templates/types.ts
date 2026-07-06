@@ -71,8 +71,13 @@ export type SiteContent = {
   };
 };
 
-/** Props every template's page components accept. */
+/** Props every template's Home accepts. */
 export type TemplateHomeProps = { content: SiteContent };
+
+/** Props for template full-page components (About, Gallery, …). Content is
+    optional so a template can be built frontend-first with placeholder data
+    and wired to the CMS later. */
+export type TemplatePageProps = { content?: SiteContent };
 
 /** Display metadata for a template (used by the registry + dashboard gallery). */
 export type TemplateManifest = {
@@ -85,8 +90,17 @@ export type TemplateManifest = {
   accent: string;
 };
 
-/** A registered template = its manifest + the components it renders. */
+/** A registered template = its manifest + the page components it renders.
+    Home is optional so a template can be built page-by-page. Add the other
+    full-page slots as each template implements them. */
 export type Template = {
   manifest: TemplateManifest;
-  Home: ComponentType<TemplateHomeProps>;
+  Home?: ComponentType<TemplateHomeProps>;
+  About?: ComponentType<TemplatePageProps>;
+  Gallery?: ComponentType<TemplatePageProps>;
+  Services?: ComponentType<TemplatePageProps>;
+  Packages?: ComponentType<TemplatePageProps>;
+  Blog?: ComponentType<TemplatePageProps>;
+  Reviews?: ComponentType<TemplatePageProps>;
+  Contact?: ComponentType<TemplatePageProps>;
 };

@@ -1,23 +1,12 @@
-import { getSite } from "@/lib/get-site";
-import { PageShell } from "@/components/site/page-shell";
-import { ReviewCard } from "@/components/site/review-card";
+import { getTemplate } from "@/templates/registry";
 
-export default async function ReviewsPage({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const sp = await searchParams;
-  const domain = typeof sp.domain === "string" ? sp.domain : undefined;
-  const { content } = await getSite({ domain });
+/* Reviews route — renders the active template's Reviews via the registry.
+   FRONTEND ONLY: pinned to the "aria" template we're building. CMS wiring
+   will resolve the tenant's template dynamically (same as HomeRenderer). */
+const ACTIVE_TEMPLATE = "aria";
 
-  return (
-    <PageShell title="Reviews" desc="What recent clients said.">
-      <div className="grid gap-4 md:grid-cols-3">
-        {content.testimonials.map((t, i) => (
-          <ReviewCard key={i} review={t} />
-        ))}
-      </div>
-    </PageShell>
-  );
+export default function ReviewsPage() {
+  const { Reviews } = getTemplate(ACTIVE_TEMPLATE);
+  if (!Reviews) return null;
+  return <Reviews />;
 }

@@ -1,11 +1,13 @@
 import { getSite } from "@/lib/get-site";
-import { HomeRenderer } from "@/components/site/home-renderer";
+import { getTemplate } from "@/templates/registry";
 
-/* Server component: resolves the tenant's template + content (by domain) on
-   the server, then hands it to the renderer. Falls back to mock content when
-   there's no domain / no backend.
+/* Home route — renders the active template's Home via the registry.
+   FRONTEND ONLY: pinned to the "aria" template we're building. CMS wiring
+   will resolve the tenant's template dynamically (same as the other routes).
 
    Dev: append ?domain=<tenant-domain> to test a real tenant from localhost. */
+const ACTIVE_TEMPLATE = "aria";
+
 export default async function HomePage({
   searchParams,
 }: {
@@ -15,5 +17,7 @@ export default async function HomePage({
   const domain = typeof sp.domain === "string" ? sp.domain : undefined;
   const site = await getSite({ domain });
 
-  return <HomeRenderer serverTemplate={site.template} content={site.content} />;
+  const { Home } = getTemplate(ACTIVE_TEMPLATE);
+  if (!Home) return null;
+  return <Home content={site.content} />;
 }

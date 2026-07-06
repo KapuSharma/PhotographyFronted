@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="200" viewBox="0 0 320 200" fill="none">
+  <rect width="320" height="200" fill="#FBFAF6"/>
+  <circle cx="26" cy="26" r="10" fill="#1B5E4E"/>
+  <rect x="42" y="21" width="86" height="6" rx="3" fill="#16211C"/>
+  <rect x="42" y="31" width="60" height="4" rx="2" fill="#8A8A85" opacity="0.7"/>
+  <rect x="250" y="16" width="56" height="20" rx="10" fill="#1B5E4E"/>
+  <text x="20" y="92" font-family="Georgia, serif" font-size="22" font-weight="bold" fill="#16211C">Timeless</text>
+  <text x="20" y="118" font-family="Georgia, serif" font-size="22" font-style="italic" fill="#C79A3C">memories.</text>
+  <rect x="20" y="134" width="92" height="24" rx="12" fill="#1B5E4E"/>
+  <rect x="122" y="134" width="80" height="24" rx="12" fill="#FBFAF6" stroke="#1B5E4E"/>
+  <rect x="196" y="60" width="50" height="98" rx="16" fill="#ffffff" stroke="#E9E6E0"/>
+  <rect x="202" y="66" width="38" height="60" rx="9" fill="#EDF4F0"/>
+  <rect x="254" y="74" width="52" height="84" rx="16" fill="#ffffff" stroke="#E9E6E0"/>
+  <rect x="260" y="80" width="40" height="52" rx="9" fill="#FBF4E9"/>
+  <rect x="0" y="176" width="320" height="24" fill="#123F34"/>
+  <rect x="14" y="185" width="70" height="6" rx="3" fill="#FBFAF6" opacity="0.85"/>
+  <rect x="270" y="183" width="36" height="10" rx="5" fill="#C79A3C"/>
+</svg>

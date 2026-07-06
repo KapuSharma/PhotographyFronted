@@ -1,23 +1,12 @@
-import { getSite } from "@/lib/get-site";
-import { PageShell } from "@/components/site/page-shell";
-import { PackageCard } from "@/components/site/package-card";
+import { getTemplate } from "@/templates/registry";
 
-export default async function PackagesPage({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const sp = await searchParams;
-  const domain = typeof sp.domain === "string" ? sp.domain : undefined;
-  const { content } = await getSite({ domain });
+/* Packages route — renders the active template's Packages via the registry.
+   FRONTEND ONLY: pinned to the "aria" template we're building. CMS wiring
+   will resolve the tenant's template dynamically (same as HomeRenderer). */
+const ACTIVE_TEMPLATE = "aria";
 
-  return (
-    <PageShell title="Packages" desc="Each package is described by outcome and deliverables.">
-      <div className="grid gap-5 lg:grid-cols-3">
-        {content.packages.map((p) => (
-          <PackageCard key={p.id} pkg={p} ctaLabel="Book this package" />
-        ))}
-      </div>
-    </PageShell>
-  );
+export default function PackagesPage() {
+  const { Packages } = getTemplate(ACTIVE_TEMPLATE);
+  if (!Packages) return null;
+  return <Packages />;
 }

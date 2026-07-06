@@ -28,7 +28,7 @@ export function SiteFooter({
   const showSocials = footer.socials.length > 0;
 
   return (
-    <footer className="mt-10 border-t border-border bg-card">
+    <footer className="border-t border-border bg-card">
       <div className="mx-auto grid max-w-7xl xl:max-w-[1536px] 2xl:max-w-[1920px] gap-8 px-4 py-12 md:grid-cols-[1.4fr_1fr_1fr_1fr] md:px-6 2xl:px-12">
         <div>
           <div className="flex items-center gap-2.5">
