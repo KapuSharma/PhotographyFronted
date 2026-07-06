@@ -14,6 +14,7 @@ import {
 import { motion } from "motion/react";
 
 import { Reveal, EASE } from "./motion";
+import { CommonSections } from "./common";
 import type { TemplatePageProps } from "@/templates/types";
 
 const u = (id: string, w = 400) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=80`;
@@ -52,9 +53,44 @@ const Stars = ({ n = 5 }: { n?: number }) => (
   <div className="flex gap-0.5">{Array.from({ length: n }).map((_, i) => <Star key={i} width={15} height={15} className="fill-[var(--a-gold)] text-[var(--a-gold)]" />)}</div>
 );
 
-export default function AriaReviews(_props: TemplatePageProps) {
+/* Testimonial quotes are plain text — if a CMS rich-text/pasted value sneaks in
+   HTML markup, strip it so cards never render raw tags/inline styles. */
+const stripHtml = (s: string) =>
+  (s || "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ").replace(/&amp;/gi, "&").replace(/&quot;/gi, '"').replace(/&#39;/gi, "'").replace(/&lt;/gi, "<").replace(/&gt;/gi, ">")
+    .replace(/\s+/g, " ")
+    .trim();
+
+export default function AriaReviews({ content }: TemplatePageProps) {
+  const rp = content?.reviewsPage;
+  const heroEyebrow = rp?.hero.eyebrow || "Client Reviews";
+  const heroTitle = rp?.hero.title || "Trusted by clients,";
+  const heroAccent = rp?.hero.accent || "loved for memories.";
+  const heroSubtitle = rp?.hero.subtitle || "We don't just take photos, we create experiences. Here's what our amazing clients have to say.";
+  const sum = rp?.summary;
+  const bars = sum?.breakdown?.length ? sum.breakdown.map((b) => ({ s: b.star, p: b.percent })) : BARS;
+  const vid = rp?.video;
+  const videoStats = vid?.stats?.length
+    ? vid.stats.map((s, i) => ({ Icon: STATS[i]?.icon || Star, value: s.value, label: s.label }))
+    : STATS.map((s) => ({ Icon: s.icon, value: s.value, label: s.label }));
+  const heroImg = rp?.hero.image || HERO_IMG;
+  const viewMore = rp?.viewMore;
+  const photo = rp?.photoReviews;
+  const photoImgs = photo?.images?.length ? photo.images : PHOTOS.map((id) => u(id, 300));
+  const reviewOn = rp?.reviewOn;
+  const cta = rp?.cta;
+
+  const usingContentReviews = !!content?.testimonials?.length;
+  const reviews = usingContentReviews
+    ? content!.testimonials.map((t, i) => ({
+        text: stripHtml(t.text), name: t.client, role: "", city: t.city, date: "", cat: "",
+        img: t.avatar || u(PHOTOS[i % PHOTOS.length]),
+      }))
+    : REVIEWS;
+
   const [tab, setTab] = useState("All Reviews");
-  const shown = tab === "All Reviews" ? REVIEWS : REVIEWS.filter((r) => r.cat === tab);
+  const shown = usingContentReviews ? reviews : (tab === "All Reviews" ? REVIEWS : REVIEWS.filter((r) => r.cat === tab));
 
   return (
     <main className="aria font-inter bg-[var(--a-cream)] text-[var(--a-ink)]">
@@ -62,20 +98,20 @@ export default function AriaReviews(_props: TemplatePageProps) {
       <section className="relative h-[230px] w-full overflow-hidden bg-[#f1e8db] sm:h-[260px] md:h-[290px]">
         {/* Full-bleed flatlay, anchored right; the left fades to cream for the text. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={HERO_IMG} alt="Thank you for trusting us with your special moments." className="absolute inset-0 h-full w-full object-cover object-right" />
+        <img src={heroImg} alt="Thank you for trusting us with your special moments." className="absolute inset-0 h-full w-full object-cover object-right" />
         {/* Left→right readability gradient, matched to the hero's warm cream. */}
         <div className="absolute inset-0 bg-gradient-to-r from-[#f1e8db] via-[#f1e8db]/85 to-transparent md:via-[#f1e8db]/70" />
         {/* Content overlay, aligned to the site grid */}
         <div className="absolute inset-0">
           <div className="mx-auto flex h-full w-full max-w-[1200px] items-center px-5 sm:px-6 lg:px-8 xl:max-w-[1360px] xl:px-10 2xl:max-w-[1560px] 2xl:px-14">
             <div className="max-w-xl">
-              <Reveal><p className="text-[11px] font-bold uppercase tracking-[0.25em] text-[var(--a-green)]">Client Reviews</p></Reveal>
+              <Reveal><p className="text-[11px] font-bold uppercase tracking-[0.25em] text-[var(--a-green)]">{heroEyebrow}</p></Reveal>
               <Reveal delay={0.06}>
                 <h1 className="font-playfair mt-3 text-[2.4rem] font-bold leading-[1.15] text-[var(--a-ink)] md:text-[2.75rem]">
-                  Trusted by clients,<br /><em className="font-script text-[38px] font-normal normal-case not-italic leading-none text-[var(--a-green)] md:text-[48px]">loved for memories.</em>
+                  {heroTitle}<br /><em className="font-script text-[38px] font-normal normal-case not-italic leading-none text-[var(--a-green)] md:text-[48px]">{heroAccent}</em>
                 </h1>
               </Reveal>
-              <Reveal delay={0.12}><p className="mt-4 max-w-md text-[15px] leading-7 text-[var(--a-body)]">We don&apos;t just take photos, we create experiences. Here&apos;s what our amazing clients have to say.</p></Reveal>
+              <Reveal delay={0.12}><p className="mt-4 max-w-md text-[15px] leading-7 text-[var(--a-body)]">{heroSubtitle}</p></Reveal>
             </div>
           </div>
         </div>
@@ -87,12 +123,12 @@ export default function AriaReviews(_props: TemplatePageProps) {
           <div className="grid gap-8 rounded-2xl border border-[var(--a-line)] bg-white p-6 shadow-sm md:grid-cols-[0.9fr_1.3fr_1.1fr] md:p-8">
             <div className="text-center md:border-r md:border-[var(--a-line)]">
               <div className="text-sm font-bold text-[var(--a-ink)]">Overall Rating</div>
-              <div className="mt-1 flex items-end justify-center gap-1"><span className="text-[3rem] font-extrabold leading-none text-[var(--a-ink)]">4.9</span><span className="mb-2 text-lg text-[var(--a-body)]">/5</span></div>
+              <div className="mt-1 flex items-end justify-center gap-1"><span className="text-[3rem] font-extrabold leading-none text-[var(--a-ink)]">{sum?.rating || "4.9"}</span><span className="mb-2 text-lg text-[var(--a-body)]">/5</span></div>
               <div className="mt-1 flex justify-center"><Stars /></div>
-              <div className="mt-1 text-xs text-[var(--a-body)]">(250+ Reviews)</div>
+              <div className="mt-1 text-xs text-[var(--a-body)]">({sum?.count || "250+ Reviews"})</div>
             </div>
             <div className="flex flex-col justify-center gap-2 md:px-6">
-              {BARS.map((b) => (
+              {bars.map((b) => (
                 <div key={b.s} className="flex items-center gap-3 text-xs">
                   <span className="w-12 shrink-0 text-[var(--a-body)]">{b.s} Stars</span>
                   <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#eceae4]"><motion.div initial={{ width: 0 }} whileInView={{ width: `${b.p}%` }} viewport={{ once: true }} transition={{ duration: 0.9, ease: EASE }} className="h-full rounded-full bg-[var(--a-green-2)]" /></div>
@@ -102,8 +138,8 @@ export default function AriaReviews(_props: TemplatePageProps) {
             </div>
             <div className="relative rounded-xl bg-[var(--a-green-soft)]/70 p-5">
               <Quote width={26} height={26} className="text-[var(--a-green)]/40" />
-              <p className="mt-1 text-sm leading-6 text-[var(--a-ink)]">Our goal is to make every client feel confident, comfortable and completely in love with their photos.</p>
-              <p className="mt-3 text-xs font-semibold text-[var(--a-green)]">– High On Innovation Team</p>
+              <p className="mt-1 text-sm leading-6 text-[var(--a-ink)]">{sum?.quote || "Our goal is to make every client feel confident, comfortable and completely in love with their photos."}</p>
+              <p className="mt-3 text-xs font-semibold text-[var(--a-green)]">– {sum?.quoteAuthor || "High On Innovation Team"}</p>
             </div>
           </div>
         </Reveal>
@@ -147,32 +183,34 @@ export default function AriaReviews(_props: TemplatePageProps) {
           ))}
         </motion.div>
         <div className="mt-8 flex justify-center">
-          <a href="#" className="inline-flex items-center gap-2 rounded-full border border-[var(--a-green)]/40 bg-white px-6 py-3 text-sm font-bold text-[var(--a-green)] transition hover:bg-[var(--a-green-soft)]">View more reviews <ArrowRight width={15} height={15} /></a>
+          <a href={viewMore?.href || "#"} className="inline-flex items-center gap-2 rounded-full border border-[var(--a-green)]/40 bg-white px-6 py-3 text-sm font-bold text-[var(--a-green)] transition hover:bg-[var(--a-green-soft)]">{viewMore?.label || "View more reviews"} <ArrowRight width={15} height={15} /></a>
         </div>
       </Wrap>
 
       {/* ── Photo Reviews ── */}
+      {photo?.active !== false && (
       <Wrap className="mt-10">
         <Reveal>
           <div className="rounded-2xl border border-[var(--a-line)] bg-[#f6f7f5] p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--a-green-soft)] text-[var(--a-green)]"><ImageIcon width={17} height={17} /></span>
-                <div><div className="text-sm font-bold text-[var(--a-ink)]">Photo Reviews</div><div className="text-xs text-[var(--a-body)]">Moments shared by our wonderful clients</div></div>
+                <div><div className="text-sm font-bold text-[var(--a-ink)]">{photo?.heading || "Photo Reviews"}</div><div className="text-xs text-[var(--a-body)]">{photo?.subtitle || "Moments shared by our wonderful clients"}</div></div>
               </div>
-              <a href="#" className="inline-flex items-center gap-1 text-xs font-bold text-[var(--a-green)]">View all photos <ArrowRight width={13} height={13} /></a>
+              <a href={photo?.viewAllHref || "#"} className="inline-flex items-center gap-1 text-xs font-bold text-[var(--a-green)]">{photo?.viewAllLabel || "View all photos"} <ArrowRight width={13} height={13} /></a>
             </div>
             <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-6">
-              {PHOTOS.map((id, i) => (
-                <motion.div key={id} whileHover={{ scale: 1.04 }} className="overflow-hidden rounded-xl">
+              {photoImgs.map((src, i) => (
+                <motion.div key={i} whileHover={{ scale: 1.04 }} className="overflow-hidden rounded-xl">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={u(id, 300)} alt={`Client photo ${i + 1}`} className="aspect-square w-full object-cover" />
+                  <img src={src} alt={`Client photo ${i + 1}`} className="aspect-square w-full object-cover" />
                 </motion.div>
               ))}
             </div>
           </div>
         </Reveal>
       </Wrap>
+      )}
 
       {/* ── Video + Stats + Review-us-on ── */}
       <Wrap className="mt-5">
@@ -182,14 +220,14 @@ export default function AriaReviews(_props: TemplatePageProps) {
             <div className="flex h-full flex-col rounded-2xl border border-[var(--a-line)] bg-[var(--a-green-soft)]/50 p-5">
               <div className="flex items-start gap-2.5">
                 <ImageIcon width={18} height={18} className="mt-0.5 shrink-0 text-[var(--a-green)]" />
-                <div><div className="text-sm font-bold text-[var(--a-ink)]">Client Video Testimonial</div><div className="text-xs text-[var(--a-body)]">Hear directly from our happy clients</div></div>
+                <div><div className="text-sm font-bold text-[var(--a-ink)]">{vid?.heading || "Client Video Testimonial"}</div><div className="text-xs text-[var(--a-body)]">{vid?.subtitle || "Hear directly from our happy clients"}</div></div>
               </div>
               <div className="relative mt-4 overflow-hidden rounded-xl">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={u("1519741497674-611481863552", 600)} alt="Priya & Karan" className="h-[150px] w-full object-cover" />
+                <img src={vid?.thumbnail || u("1519741497674-611481863552", 600)} alt={vid?.name || "Client video"} className="h-[150px] w-full object-cover" />
                 <div className="absolute inset-0 flex items-center justify-center"><span className="flex h-14 w-14 items-center justify-center rounded-full bg-white/85 text-[var(--a-green-2)] shadow-lg"><Play width={22} height={22} className="fill-current" /></span></div>
-                <div className="absolute bottom-3 left-3 text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.5)]"><div className="text-sm font-bold">Priya &amp; Karan</div><div className="text-xs opacity-90">Wedding Photography</div></div>
-                <span className="absolute bottom-3 right-3 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold text-white">01:32</span>
+                <div className="absolute bottom-3 left-3 text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.5)]"><div className="text-sm font-bold">{vid?.name || "Priya & Karan"}</div><div className="text-xs opacity-90">{vid?.role || "Wedding Photography"}</div></div>
+                <span className="absolute bottom-3 right-3 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold text-white">{vid?.duration || "01:32"}</span>
               </div>
             </div>
           </Reveal>
@@ -198,54 +236,56 @@ export default function AriaReviews(_props: TemplatePageProps) {
           <Reveal delay={0.06} className="h-full">
             <div className="flex h-full items-center rounded-2xl border border-[var(--a-line)] bg-white px-6 py-4">
               <div className="grid w-full grid-cols-2 gap-x-8">
-                {STATS.map((s, i) => {
-                  const Icon = s.icon;
-                  return (
-                    <div key={s.label} className={cn("flex items-center gap-4 py-4", i < 2 && "border-b border-[var(--a-line)]", i % 2 === 0 ? "pr-4" : "pl-4")}>
-                      <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[var(--a-green-soft)] text-[var(--a-green)]"><Icon width={24} height={24} /></span>
-                      <div><div className="text-xl font-bold leading-none text-[var(--a-ink)]">{s.value}</div><div className="mt-1 text-sm text-[var(--a-body)]">{s.label}</div></div>
-                    </div>
-                  );
-                })}
+                {videoStats.map((s, i) => (
+                  <div key={i} className={cn("flex items-center gap-4 py-4", i < 2 && "border-b border-[var(--a-line)]", i % 2 === 0 ? "pr-4" : "pl-4")}>
+                    <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[var(--a-green-soft)] text-[var(--a-green)]"><s.Icon width={24} height={24} /></span>
+                    <div><div className="text-xl font-bold leading-none text-[var(--a-ink)]">{s.value}</div><div className="mt-1 text-sm text-[var(--a-body)]">{s.label}</div></div>
+                  </div>
+                ))}
               </div>
             </div>
           </Reveal>
 
           {/* Review us on */}
+          {reviewOn?.active !== false && (
           <Reveal delay={0.12} className="h-full">
             <div className="flex h-full flex-col justify-center rounded-2xl border border-[var(--a-line)] bg-white px-6 py-5">
-              <h4 className="text-base font-bold text-[var(--a-ink)]">Review us on</h4>
-              <p className="mt-1.5 max-w-[15rem] text-sm leading-6 text-[var(--a-body)]">Share your experience and help others choose the right photographer.</p>
+              <h4 className="text-base font-bold text-[var(--a-ink)]">{reviewOn?.heading || "Review us on"}</h4>
+              <p className="mt-1.5 max-w-[15rem] text-sm leading-6 text-[var(--a-body)]">{reviewOn?.subtitle || "Share your experience and help others choose the right photographer."}</p>
               <div className="mt-4 space-y-2.5">
-                <a href="#" className="flex items-center justify-between rounded-xl border border-[var(--a-line)] px-4 py-2.5 transition hover:bg-[#f6f7f5]">
-                  <span className="flex items-center gap-3 text-sm font-bold text-[var(--a-ink)]"><span className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-[13px] font-black shadow-sm ring-1 ring-[var(--a-line)]" style={{ color: "#4285F4" }}>G</span> Google Reviews</span>
+                <a href={reviewOn?.google.url || "#"} className="flex items-center justify-between rounded-xl border border-[var(--a-line)] px-4 py-2.5 transition hover:bg-[#f6f7f5]">
+                  <span className="flex items-center gap-3 text-sm font-bold text-[var(--a-ink)]"><span className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-[13px] font-black shadow-sm ring-1 ring-[var(--a-line)]" style={{ color: "#4285F4" }}>G</span> {reviewOn?.google.label || "Google Reviews"}</span>
                   <ExternalLink width={15} height={15} className="text-[var(--a-body)]" />
                 </a>
-                <a href="#" className="flex items-center justify-between rounded-xl border border-[var(--a-line)] px-4 py-2.5 transition hover:bg-[#f6f7f5]">
-                  <span className="flex items-center gap-3 text-sm font-bold text-[var(--a-ink)]"><span className="flex h-7 w-7 items-center justify-center rounded-full text-[13px] font-black text-white" style={{ background: "#1877F2" }}>f</span> Facebook Reviews</span>
+                <a href={reviewOn?.facebook.url || "#"} className="flex items-center justify-between rounded-xl border border-[var(--a-line)] px-4 py-2.5 transition hover:bg-[#f6f7f5]">
+                  <span className="flex items-center gap-3 text-sm font-bold text-[var(--a-ink)]"><span className="flex h-7 w-7 items-center justify-center rounded-full text-[13px] font-black text-white" style={{ background: "#1877F2" }}>f</span> {reviewOn?.facebook.label || "Facebook Reviews"}</span>
                   <ExternalLink width={15} height={15} className="text-[var(--a-body)]" />
                 </a>
               </div>
             </div>
           </Reveal>
+          )}
         </div>
       </Wrap>
 
       {/* ── CTA band ── */}
+      {cta?.active !== false && (
       <Wrap className="py-10">
         <Reveal>
           <div className="flex flex-col items-center justify-between gap-4 rounded-2xl bg-gradient-to-r from-[var(--a-green-soft)] to-[#eef3f0] px-6 py-6 md:flex-row md:px-8">
             <div className="flex items-center gap-3">
               <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-[var(--a-green)] shadow-sm"><Camera width={20} height={20} /></span>
               <div>
-                <h4 className="text-base font-bold text-[var(--a-ink)]">Ready to create your own beautiful memories?</h4>
-                <p className="text-sm text-[var(--a-body)]">Let&apos;s capture your moments that last a lifetime.</p>
+                <h4 className="text-base font-bold text-[var(--a-ink)]">{cta?.heading || "Ready to create your own beautiful memories?"}</h4>
+                <p className="text-sm text-[var(--a-body)]">{cta?.subtitle || "Let's capture your moments that last a lifetime."}</p>
               </div>
             </div>
-            <a href="#" className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[var(--a-green-2)] px-6 py-3.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[var(--a-green)]">Book Your Session <ArrowRight width={16} height={16} /></a>
+            <a href={cta?.buttonHref || "#"} className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[var(--a-green-2)] px-6 py-3.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[var(--a-green)]">{cta?.buttonLabel || "Book Your Session"} <ArrowRight width={16} height={16} /></a>
           </div>
         </Reveal>
       </Wrap>
+      )}
+      <CommonSections content={content} page="reviews" />
     </main>
   );
 }

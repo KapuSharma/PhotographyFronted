@@ -14,6 +14,7 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 
 import { Reveal, EASE } from "./motion";
+import { CommonSections } from "./common";
 import type { TemplatePageProps } from "@/templates/types";
 
 const u = (id: string, w = 700) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=80`;
@@ -22,11 +23,6 @@ const u = (id: string, w = 700) => `https://images.unsplash.com/photo-${id}?auto
 const Rings = ({ size = 18, className = "" }: { size?: number; className?: string }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}><circle cx="9" cy="15" r="6" stroke="currentColor" strokeWidth="1.7" /><circle cx="15" cy="9" r="6" stroke="currentColor" strokeWidth="1.7" /></svg>
 );
-/* Drone glyph. */
-const Drone = ({ size = 15, className = "" }: { size?: number; className?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}><circle cx="5" cy="6" r="2.4" stroke="currentColor" strokeWidth="1.5" /><circle cx="19" cy="6" r="2.4" stroke="currentColor" strokeWidth="1.5" /><rect x="8.5" y="10" width="7" height="5" rx="1.4" stroke="currentColor" strokeWidth="1.5" /><path d="M7 8l2 2m8-2l-2 2M12 15v4m-3 0h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
-);
-
 const HERO_STATS: { icon: LucideIcon; value: string; label: string }[] = [
   { icon: Camera, value: "500+", label: "Projects" }, { icon: Award, value: "8+", label: "Years Exp." },
   { icon: Star, value: "4.9/5", label: "120+ Reviews" }, { icon: Clock, value: "Same Day", label: "Preview" },
@@ -70,81 +66,133 @@ const Wrap = ({ children, className = "" }: { children: React.ReactNode; classNa
   <section className={`mx-auto w-full max-w-[1200px] px-5 sm:px-6 lg:px-8 xl:max-w-[1360px] xl:px-10 2xl:max-w-[1560px] 2xl:px-14 ${className}`}>{children}</section>
 );
 const cn = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(" ");
+
+/* CMS → glyph maps + a colour palette cycled across dynamic service cards. */
+const STAT_ICONS: Record<string, LucideIcon> = { camera: Camera, award: Award, star: Star, clock: Clock, users: Users, sparkles: Sparkles, calendar: Calendar, image: ImageIcon };
+const statIc = (k?: string): LucideIcon => (k && STAT_ICONS[k]) || Camera;
+const CAT_ICON: Record<string, React.ComponentType<{ size?: number; className?: string }>> = { Wedding: Rings, "Pre Wedding": Users, "Pre-Wedding": Users, Maternity: Baby, Corporate: Briefcase, Product: PackageIcon, Fashion: Shirt, Family: Users, Events: PartyPopper, Event: PartyPopper };
+const catIc = (c?: string) => (c && CAT_ICON[c]) || Camera;
+const PALETTE = [
+  { color: "#c8a165", priceCls: "text-[#b98a3e]", btnCls: "bg-[#f6d493] text-[#8a6a2a] hover:bg-[#f2ca7f]" },
+  { color: "#157a5e", priceCls: "text-[var(--a-green)]", btnCls: "bg-[#a9d4c9] text-[#0e5a44] hover:bg-[#98cbbe]" },
+  { color: "#d9668a", priceCls: "text-[#d24d76]", btnCls: "bg-[#f5c9d6] text-[#b04a6a] hover:bg-[#f0bccb]" },
+  { color: "#3f6fd0", priceCls: "text-[#3f6fd0]", btnCls: "bg-[#bcd0f2] text-[#2f5bb0] hover:bg-[#aac2ee]" },
+  { color: "#d97b34", priceCls: "text-[#d97b34]", btnCls: "bg-[#f6d0a0] text-[#b56a24] hover:bg-[#f2c68d]" },
+];
+const thumbSrc = (t: string) => (t.startsWith("http") ? t : u(t, 160));
 const Stars = ({ n = 5 }: { n?: number }) => (
   <div className="flex gap-0.5">{Array.from({ length: n }).map((_, i) => <Star key={i} width={13} height={13} className="fill-[var(--a-gold)] text-[var(--a-gold)]" />)}</div>
 );
 
-export default function AriaServices(_props: TemplatePageProps) {
+export default function AriaServices({ content }: TemplatePageProps) {
+  const sp = content?.servicesPage;
+  const heroTitle = sp?.hero.title || "Our Services";
+  const heroTagline = sp?.hero.tagline || "Capturing Moments. Creating Stories.";
+  const heroSubtitle = sp?.hero.subtitle || "Explore our photography services crafted to preserve your most precious moments with artistry and passion.";
+  const heroStats = sp?.hero.stats?.length
+    ? sp.hero.stats.map((s) => ({ Icon: statIc(s.icon), value: s.value, label: s.label }))
+    : HERO_STATS.map((s) => ({ Icon: s.icon, value: s.value, label: s.label }));
+
+  const services: Svc[] = content?.services?.length
+    ? content.services.map((s, i) => {
+        const pal = PALETTE[i % PALETTE.length];
+        const imgs = (s.images?.length ? s.images : [s.photo?.src]).filter(Boolean) as string[];
+        return {
+          name: s.name, cat: s.category || "", rating: s.rating || "4.9", reviews: s.reviews || "",
+          price: s.from || "", features: s.features?.length ? s.features : (s.desc ? [s.desc] : []),
+          icon: catIc(s.category), img: s.photo?.src || imgs[0] || "", thumbs: imgs.slice(0, 3),
+          color: pal.color, priceCls: pal.priceCls, btnCls: pal.btnCls, iconCls: "",
+        };
+      })
+    : SERVICES;
+
+  const cats = Array.from(new Set(services.map((s) => s.cat).filter(Boolean)));
+  const tabs = content?.services?.length
+    ? [{ name: "All Services", icon: LayoutGrid }, ...cats.map((c) => ({ name: c, icon: catIc(c) }))]
+    : TABS;
+
+  const helpActive = sp?.help.active !== false;
+  const help = sp?.help.items?.length ? sp.help.items : [
+    { icon: "sparkles", title: "Not sure which package suits you?", text: "Let our AI assistant help you find the perfect photography package.", buttonLabel: "Ask AI Assistant", buttonHref: "#" },
+    { icon: "calendar", title: "Need a custom package?", text: "Let's discuss your requirements and create something perfect for you.", buttonLabel: "Book a Consultation", buttonHref: "/contact" },
+  ];
+
+  const featuredActive = sp?.featured.active !== false;
+  const featuredBadge = sp?.featured.badge || "Most Popular";
+  const fIdx = sp?.featured.serviceId ? (content?.services?.findIndex((s) => s.id === sp.featured.serviceId) ?? -1) : -1;
+  const featured = fIdx >= 0 ? services[fIdx] : services[0];
+  const featuredDesc = (fIdx >= 0 ? content?.services?.[fIdx]?.desc : content?.services?.[0]?.desc) || "Full-day story coverage with cinematic photography and premium album.";
+  const FeaturedIcon = featured?.icon || Rings;
+
   const [tab, setTab] = useState("All Services");
-  const shown = tab === "All Services" ? SERVICES : SERVICES.filter((s) => s.cat === tab);
+  const shown = tab === "All Services" ? services : services.filter((s) => s.cat === tab);
+
+  const renderTab = (t: { name: string; icon: React.ComponentType<{ size?: number; className?: string }> | LucideIcon }) => {
+    const on = t.name === tab;
+    const Icon = t.icon;
+    return (
+      <button key={t.name} onClick={() => setTab(t.name)}
+        className={cn("inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-medium transition",
+          on ? "bg-[var(--a-green-2)] text-white shadow" : "text-[var(--a-body)] hover:bg-[var(--a-green-soft)]/60 hover:text-[var(--a-green)]")}>
+        <Icon size={16} /> {t.name}
+      </button>
+    );
+  };
 
   return (
     <main className="aria font-inter bg-[var(--a-cream)] text-[var(--a-ink)]">
       {/* ── Hero ── */}
-      <Wrap className="grid items-center gap-8 py-10 lg:grid-cols-[0.85fr_1.4fr] md:py-12">
+      <Wrap className="grid items-center gap-8 py-6 lg:grid-cols-[0.85fr_1.4fr] md:py-7">
         {/* Left */}
         <div>
-          <Reveal><h1 className="font-playfair text-[clamp(2.625rem,4.6vw,2.875rem)] font-bold text-[var(--a-ink)]">Our Services</h1></Reveal>
-          <Reveal delay={0.06}><p className="mt-1 text-lg font-bold text-[var(--a-green)]">Capturing Moments. Creating Stories.</p></Reveal>
-          <Reveal delay={0.12}><p className="mt-4 max-w-sm text-[15px] leading-7 text-[var(--a-body)]">Explore our photography services crafted to preserve your most precious moments with artistry and passion.</p></Reveal>
+          <Reveal><h1 className="font-playfair text-[clamp(2.625rem,4.6vw,2.875rem)] font-bold text-[var(--a-ink)]">{heroTitle}</h1></Reveal>
+          <Reveal delay={0.06}><p className="mt-1 text-lg font-bold text-[var(--a-green)]">{heroTagline}</p></Reveal>
+          <Reveal delay={0.12}><p className="mt-4 max-w-sm text-[15px] leading-7 text-[var(--a-body)]">{heroSubtitle}</p></Reveal>
           <Reveal delay={0.16}>
-            <div className="mt-7 grid grid-cols-4 gap-3">
-              {HERO_STATS.map((s) => {
-                const Icon = s.icon;
-                return (
-                  <div key={s.label} className="flex items-center gap-2">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--a-green-soft)] text-[var(--a-green)]"><Icon width={16} height={16} /></span>
-                    <div className="leading-tight"><div className="text-sm font-extrabold text-[var(--a-ink)]">{s.value}</div><div className="text-[10px] text-[var(--a-body)]">{s.label}</div></div>
-                  </div>
-                );
-              })}
+            <div className="mt-7 grid grid-cols-4 gap-x-1 gap-y-3">
+              {heroStats.map((s) => (
+                <div key={s.label} className="flex items-center gap-1.5">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--a-green-soft)] text-[var(--a-green)]"><s.Icon width={16} height={16} /></span>
+                  <div className="leading-tight"><div className="text-sm font-extrabold text-[var(--a-ink)]">{s.value}</div><div className="whitespace-nowrap text-[10px] text-[var(--a-body)]">{s.label}</div></div>
+                </div>
+              ))}
             </div>
           </Reveal>
         </div>
 
         {/* Featured card */}
+        {featuredActive && featured && (
         <Reveal delay={0.1}>
           <motion.div whileHover={{ y: -4 }} transition={{ type: "spring", stiffness: 300, damping: 22 }}
-            className="relative grid overflow-hidden rounded-2xl border border-[var(--a-line)] bg-gradient-to-br from-white to-[#faf6ec] shadow-[0_20px_50px_-24px_rgba(0,0,0,0.3)] sm:grid-cols-[1fr_1.05fr]">
-            <div className="relative min-h-[190px]">
+            className="relative grid items-stretch overflow-hidden rounded-2xl border border-[var(--a-line)] bg-gradient-to-br from-white to-[#faf6ec] shadow-[0_20px_50px_-24px_rgba(0,0,0,0.3)] sm:grid-cols-[0.78fr_1.32fr]">
+            <div className="relative min-h-[150px]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={u("1519741497674-611481863552", 800)} alt="Wedding Photography" className="h-full w-full object-cover" />
-              <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-md bg-[var(--a-gold)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow"><Star width={11} height={11} className="fill-current" /> Most Popular</span>
+              <img src={featured.img || u("1519741497674-611481863552", 800)} alt={featured.name} className="absolute inset-0 h-full w-full object-cover" />
+              <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-md bg-[var(--a-gold)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow"><Star width={11} height={11} className="fill-current" /> {featuredBadge}</span>
             </div>
-            <div className="relative p-5">
-              <Camera width={64} height={64} className="pointer-events-none absolute -right-2 top-2 text-[var(--a-gold)]/10" />
-              <div className="flex items-center gap-2"><Rings size={20} className="text-[var(--a-gold)]" /><h3 className="font-playfair text-lg font-bold text-[var(--a-ink)]">Wedding Photography</h3></div>
-              <div className="mt-1 flex items-center gap-2 text-sm"><Stars /><span className="font-bold text-[var(--a-ink)]">4.9</span><span className="text-[var(--a-body)]">(186 Reviews)</span></div>
-              <div className="mt-2.5 text-[11px] font-bold uppercase tracking-wide text-[var(--a-body)]">Starting at</div>
-              <div className="text-xl font-bold text-[var(--a-green)]">₹50,000</div>
-              <p className="mt-1.5 max-w-xs text-sm leading-6 text-[var(--a-body)]">Full-day story coverage with cinematic photography and premium album.</p>
-              <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-[var(--a-ink)]/80 sm:grid-cols-3">
-                <span className="flex items-center gap-1.5"><Clock width={14} height={14} className="text-[var(--a-green)]" /> 8 Hours</span>
-                <span className="flex items-center gap-1.5"><Users width={14} height={14} className="text-[var(--a-green)]" /> 2 Photographers</span>
-                <span className="flex items-center gap-1.5"><Drone size={15} className="text-[var(--a-green)]" /> Drone</span>
-                <span className="flex items-center gap-1.5"><ImageIcon width={14} height={14} className="text-[var(--a-green)]" /> Premium Album</span>
-                <span className="col-span-2 flex items-center gap-1.5"><ImageIcon width={14} height={14} className="text-[var(--a-green)]" /> 300+ Edited Photos</span>
+            <div className="relative p-4">
+              <Camera width={58} height={58} className="pointer-events-none absolute -right-2 top-2 text-[var(--a-gold)]/10" />
+              <div className="flex items-center gap-2"><FeaturedIcon size={19} className="text-[var(--a-gold)]" /><h3 className="font-playfair text-lg font-bold text-[var(--a-ink)]">{featured.name}</h3></div>
+              <div className="mt-1 flex items-center gap-2 text-sm"><Stars /><span className="font-bold text-[var(--a-ink)]">{featured.rating}</span>{featured.reviews && <span className="text-[var(--a-body)]">({featured.reviews} Reviews)</span>}</div>
+              <div className="mt-2 text-[11px] font-bold uppercase tracking-wide text-[var(--a-body)]">Starting at</div>
+              <div className="text-xl font-bold text-[var(--a-green)]">{featured.price}</div>
+              <p className="mt-1.5 max-w-xs text-[13px] leading-5 text-[var(--a-body)]">{featuredDesc}</p>
+              <div className="mt-2.5 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-[var(--a-ink)]/80 sm:grid-cols-3">
+                {featured.features.slice(0, 5).map((f, i) => (
+                  <span key={i} className={cn("flex items-center gap-1.5", i === 4 && "col-span-2")}><CheckCircle2 width={14} height={14} className="text-[var(--a-green)]" /> {f}</span>
+                ))}
               </div>
-              <a href="/packages" className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[var(--a-green-2)] px-5 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[var(--a-green)]">View Package Details <ArrowRight width={15} height={15} /></a>
+              <a href={sp?.featured.buttonHref || "/packages"} className="mt-3 inline-flex items-center gap-2 rounded-lg bg-[var(--a-green-2)] px-5 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[var(--a-green)]">{sp?.featured.buttonLabel || "View Package Details"} <ArrowRight width={15} height={15} /></a>
             </div>
           </motion.div>
         </Reveal>
+        )}
       </Wrap>
 
       {/* ── Filter tabs ── */}
       <Wrap>
-        <div className="flex flex-wrap items-center gap-1 rounded-2xl border border-[var(--a-line)] bg-white p-2 shadow-sm">
-          {TABS.map((t) => {
-            const on = t.name === tab;
-            const Icon = t.icon;
-            return (
-              <button key={t.name} onClick={() => setTab(t.name)}
-                className={cn("inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition",
-                  on ? "bg-[var(--a-green-2)] text-white shadow" : "text-[var(--a-body)] hover:bg-[var(--a-green-soft)]/60 hover:text-[var(--a-green)]")}>
-                <Icon size={16} /> {t.name}
-              </button>
-            );
-          })}
+        <div className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-[var(--a-line)] bg-white px-5 py-2.5 shadow-sm">
+          {tabs.map(renderTab)}
         </div>
       </Wrap>
 
@@ -167,7 +215,7 @@ export default function AriaServices(_props: TemplatePageProps) {
                     <div className="absolute -bottom-6 left-3 right-3 flex gap-2">
                       {s.thumbs.map((th, i) => (
                         /* eslint-disable-next-line @next/next/no-img-element */
-                        <img key={i} src={u(th, 160)} alt="" className="h-14 w-1/3 rounded-lg border-2 border-white object-cover shadow-sm" />
+                        <img key={i} src={thumbSrc(th)} alt="" className="h-14 min-w-0 flex-1 rounded-lg border-2 border-white object-cover shadow-sm" />
                       ))}
                     </div>
                   </div>
@@ -182,7 +230,7 @@ export default function AriaServices(_props: TemplatePageProps) {
                         <li key={f} className="flex items-start gap-1.5 text-xs text-[var(--a-ink)]/80"><CheckCircle2 width={14} height={14} className="mt-0.5 shrink-0 text-[var(--a-body)]/50" /> {f}</li>
                       ))}
                     </ul>
-                    <a href="/packages" className={cn("mt-4 inline-flex items-center justify-center gap-1.5 rounded-lg py-2.5 text-sm font-bold transition", s.btnCls)}>View Packages <ArrowRight width={15} height={15} /></a>
+                    <a href={sp?.cardButton.href || "/packages"} className={cn("mt-4 inline-flex items-center justify-center gap-1.5 rounded-lg py-2.5 text-sm font-bold transition", s.btnCls)}>{sp?.cardButton.label || "View Packages"} <ArrowRight width={15} height={15} /></a>
                   </div>
                 </motion.article>
               );
@@ -193,26 +241,27 @@ export default function AriaServices(_props: TemplatePageProps) {
       </Wrap>
 
       {/* ── Bottom help band ── */}
-      <Wrap className="py-10">
-        <Reveal>
-          <div className="grid gap-4 rounded-2xl border border-[var(--a-line)] bg-[#f6f7f5] p-5 md:grid-cols-2 md:p-6">
-            <div className="flex items-center justify-between gap-4 md:border-r md:border-[var(--a-line)] md:pr-6">
-              <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-[var(--a-green)] shadow-sm"><Sparkles width={19} height={19} /></span>
-                <div><h4 className="text-sm font-bold text-[var(--a-ink)]">Not sure which package suits you?</h4><p className="text-xs text-[var(--a-body)]">Let our AI assistant help you find the perfect photography package.</p></div>
-              </div>
-              <a href="#" className="inline-flex shrink-0 items-center rounded-lg border border-[var(--a-green)]/40 bg-white px-4 py-2.5 text-xs font-bold text-[var(--a-green)] transition hover:bg-[var(--a-green-soft)]">Ask AI Assistant</a>
+      {helpActive && help.length > 0 && (
+        <Wrap className="py-10">
+          <Reveal>
+            <div className="grid gap-4 rounded-2xl border border-[var(--a-line)] bg-[#f6f7f5] p-5 md:grid-cols-2 md:p-6">
+              {help.map((h, i) => {
+                const Icon = statIc(h.icon);
+                return (
+                  <div key={i} className={cn("flex items-center justify-between gap-4", i === 0 ? "md:border-r md:border-[var(--a-line)] md:pr-6" : "md:pl-2")}>
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-[var(--a-green)] shadow-sm"><Icon width={19} height={19} /></span>
+                      <div><h4 className="text-sm font-bold text-[var(--a-ink)]">{h.title}</h4><p className="text-xs text-[var(--a-body)]">{h.text}</p></div>
+                    </div>
+                    <a href={h.buttonHref || "#"} className="inline-flex shrink-0 items-center rounded-lg border border-[var(--a-green)]/40 bg-white px-4 py-2.5 text-xs font-bold text-[var(--a-green)] transition hover:bg-[var(--a-green-soft)]">{h.buttonLabel}</a>
+                  </div>
+                );
+              })}
             </div>
-            <div className="flex items-center justify-between gap-4 md:pl-2">
-              <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-[var(--a-green)] shadow-sm"><Calendar width={19} height={19} /></span>
-                <div><h4 className="text-sm font-bold text-[var(--a-ink)]">Need a custom package?</h4><p className="text-xs text-[var(--a-body)]">Let&apos;s discuss your requirements and create something perfect for you.</p></div>
-              </div>
-              <a href="/contact" className="inline-flex shrink-0 items-center rounded-lg border border-[var(--a-green)]/40 bg-white px-4 py-2.5 text-xs font-bold text-[var(--a-green)] transition hover:bg-[var(--a-green-soft)]">Book a Consultation</a>
-            </div>
-          </div>
-        </Reveal>
-      </Wrap>
+          </Reveal>
+        </Wrap>
+      )}
+      <CommonSections content={content} page="services" />
     </main>
   );
 }

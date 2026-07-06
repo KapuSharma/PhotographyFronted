@@ -14,6 +14,7 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 
 import { Reveal, EASE } from "./motion";
+import { CommonSections } from "./common";
 import type { TemplatePageProps } from "@/templates/types";
 
 const u = (id: string, w = 700) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=80`;
@@ -35,7 +36,29 @@ const Wrap = ({ children, className = "" }: { children: React.ReactNode; classNa
 );
 const cn = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(" ");
 
-export default function AriaPackages(_props: TemplatePageProps) {
+export default function AriaPackages({ content }: TemplatePageProps) {
+  const pp = content?.packagesPage;
+  const heroEyebrow = pp?.hero.eyebrow || "Our Packages";
+  const heroTitle = pp?.hero.title || "Choose the Perfect Package";
+  const heroSubtitle = pp?.hero.subtitle || "Every moment is unique. Pick a package that fits your story and let us create memories that last forever.";
+  const cons = pp?.consultation;
+  const consActive = cons?.active !== false;
+  const secHead = pp?.sectionHeading;
+  const cardBtns = pp?.cardButtons;
+
+  const packages: Pkg[] = content?.packages?.length
+    ? content.packages.map((p) => ({
+        badge: p.badge || (p.popular ? "Most Popular" : "Package"),
+        duration: p.duration || "",
+        name: p.name,
+        price: p.price || "",
+        desc: p.description || p.bestFor || "",
+        includes: p.includes || [],
+        img: p.images?.[0] || u("1519741497674-611481863552"),
+        popular: p.popular,
+      }))
+    : PACKAGES;
+
   const [active, setActive] = useState("Wedding");
   const ActiveIcon = CATEGORIES.find((c) => c.name === active)?.icon ?? Heart;
 
@@ -43,9 +66,9 @@ export default function AriaPackages(_props: TemplatePageProps) {
     <main className="aria font-inter bg-[var(--a-cream)] text-[var(--a-ink)]">
       {/* ── Hero ── */}
       <Wrap className="py-14 text-center md:py-16">
-        <Reveal><p className="text-[11px] font-bold uppercase tracking-[0.25em] text-[var(--a-green)]">Our Packages</p></Reveal>
-        <Reveal delay={0.06}><h1 className="font-playfair mt-3 text-[clamp(2.2rem,4.6vw,3.4rem)] font-bold text-[var(--a-ink)]">Choose the Perfect Package</h1></Reveal>
-        <Reveal delay={0.12}><p className="mx-auto mt-3 max-w-2xl text-[15px] leading-7 text-[var(--a-body)]">Every moment is unique. Pick a package that fits your story and let us create memories that last forever.</p></Reveal>
+        <Reveal><p className="text-[11px] font-bold uppercase tracking-[0.25em] text-[var(--a-green)]">{heroEyebrow}</p></Reveal>
+        <Reveal delay={0.06}><h1 className="font-playfair mt-3 text-[clamp(2.2rem,4.6vw,3.4rem)] font-bold text-[var(--a-ink)]">{heroTitle}</h1></Reveal>
+        <Reveal delay={0.12}><p className="mx-auto mt-3 max-w-2xl text-[15px] leading-7 text-[var(--a-body)]">{heroSubtitle}</p></Reveal>
         <Reveal delay={0.16}>
           <div className="mx-auto mt-6 flex items-center justify-center gap-3">
             <span className="h-px w-16 bg-gradient-to-r from-transparent to-[var(--a-gold)]/70" />
@@ -80,11 +103,11 @@ export default function AriaPackages(_props: TemplatePageProps) {
             <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--a-green-soft)] text-[var(--a-green)]"><ActiveIcon width={22} height={22} /></span>
             <div>
               <h3 className="font-playfair text-xl font-bold text-[var(--a-ink)]">{active} Photography Packages</h3>
-              <p className="text-sm text-[var(--a-body)]">From intimate ceremonies to grand celebrations, we capture every emotion beautifully.</p>
+              <p className="text-sm text-[var(--a-body)]">{secHead?.subtitle || "From intimate ceremonies to grand celebrations, we capture every emotion beautifully."}</p>
             </div>
           </div>
           <div className="inline-flex items-center gap-1.5 rounded-full bg-[#f7efdf] px-3.5 py-1.5 text-sm font-bold text-[var(--a-gold)]">
-            <Star width={15} height={15} className="fill-current" /> 4.9/5 <span className="font-medium text-[var(--a-body)]">(180+ Reviews)</span>
+            <Star width={15} height={15} className="fill-current" /> {secHead?.ratingValue || "4.9/5"} <span className="font-medium text-[var(--a-body)]">{secHead?.ratingCount || "(180+ Reviews)"}</span>
           </div>
         </div>
       </Wrap>
@@ -93,7 +116,7 @@ export default function AriaPackages(_props: TemplatePageProps) {
       <Wrap className="mt-8">
         <AnimatePresence mode="wait">
           <motion.div key={active} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.4, ease: EASE }} className="grid gap-6 lg:grid-cols-3">
-            {PACKAGES.map((p) => {
+            {packages.map((p) => {
               const pop = p.popular;
               return (
                 <motion.div key={p.name} whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 300, damping: 22 }}
@@ -123,8 +146,8 @@ export default function AriaPackages(_props: TemplatePageProps) {
                       ))}
                     </ul>
                     <div className="mt-6 grid grid-cols-2 gap-3">
-                      <a href="#" className={cn("inline-flex items-center justify-center rounded-lg px-4 py-3 text-sm font-bold text-white transition", pop ? "bg-[var(--a-gold)] hover:brightness-95" : "bg-[var(--a-green-2)] hover:bg-[var(--a-green)]")}>Book this package</a>
-                      <a href="#" className={cn("inline-flex items-center justify-center rounded-lg border px-4 py-3 text-sm font-bold transition", pop ? "border-[var(--a-gold)]/60 text-[var(--a-gold)] hover:bg-[#faf5ec]" : "border-[var(--a-green)]/40 text-[var(--a-green)] hover:bg-[var(--a-green-soft)]")}>View details</a>
+                      <a href="/contact" className={cn("inline-flex items-center justify-center rounded-lg px-4 py-3 text-sm font-bold text-white transition", pop ? "bg-[var(--a-gold)] hover:brightness-95" : "bg-[var(--a-green-2)] hover:bg-[var(--a-green)]")}>{cardBtns?.primaryLabel || "Book this package"}</a>
+                      <a href="/packages" className={cn("inline-flex items-center justify-center rounded-lg border px-4 py-3 text-sm font-bold transition", pop ? "border-[var(--a-gold)]/60 text-[var(--a-gold)] hover:bg-[#faf5ec]" : "border-[var(--a-green)]/40 text-[var(--a-green)] hover:bg-[var(--a-green-soft)]")}>{cardBtns?.secondaryLabel || "View details"}</a>
                     </div>
                   </div>
                 </motion.div>
@@ -135,22 +158,25 @@ export default function AriaPackages(_props: TemplatePageProps) {
       </Wrap>
 
       {/* ── Consultation CTA ── */}
+      {consActive && (
       <Wrap className="py-12">
         <Reveal>
           <div className="flex flex-col items-center justify-between gap-4 rounded-2xl bg-[var(--a-green-soft)]/60 px-6 py-6 md:flex-row md:px-8">
             <div className="flex items-center gap-3">
               <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-[var(--a-green)] shadow-sm"><Camera width={20} height={20} /></span>
               <div>
-                <h4 className="text-base font-bold text-[var(--a-ink)]">Not sure which package is right for you?</h4>
-                <p className="text-sm text-[var(--a-body)]">Let&apos;s understand your needs and suggest the perfect package.</p>
+                <h4 className="text-base font-bold text-[var(--a-ink)]">{cons?.title || "Not sure which package is right for you?"}</h4>
+                <p className="text-sm text-[var(--a-body)]">{cons?.subtitle || "Let's understand your needs and suggest the perfect package."}</p>
               </div>
             </div>
-            <a href="#" className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[var(--a-green-2)] px-6 py-3.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[var(--a-green)]">
-              <MessageCircle width={16} height={16} /> Book a Free Consultation <ChevronRight width={16} height={16} />
+            <a href={cons?.buttonHref || "/contact"} className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[var(--a-green-2)] px-6 py-3.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[var(--a-green)]">
+              <MessageCircle width={16} height={16} /> {cons?.buttonLabel || "Book a Free Consultation"} <ChevronRight width={16} height={16} />
             </a>
           </div>
         </Reveal>
       </Wrap>
+      )}
+      <CommonSections content={content} page="packages" />
     </main>
   );
 }

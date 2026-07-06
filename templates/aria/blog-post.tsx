@@ -14,7 +14,65 @@ import {
 import { motion } from "motion/react";
 
 import { Reveal } from "./motion";
-import type { TemplatePageProps } from "@/templates/types";
+import type { ArticleBlock, SiteContent } from "@/templates/types";
+
+/* CMS icon-key → glyph for article blocks (deliverables + callouts). */
+const BLOCK_ICONS: Record<string, LucideIcon> = { image: ImageIcon, book: BookOpen, video: Video, lightbulb: Lightbulb, heart: Heart, check: Check, camera: Camera, users: Users, baby: Baby, briefcase: Briefcase, package: PackageIcon };
+const bic = (k?: string): LucideIcon => (k && BLOCK_ICONS[k]) || ImageIcon;
+
+/* Renders one structured article block in the designed aria style. */
+function Block({ b }: { b: ArticleBlock }) {
+  switch (b.type) {
+    case "heading":
+      return <h2 className="font-playfair mt-5 text-xl font-bold text-[var(--a-ink)]">{b.text}</h2>;
+    case "paragraph":
+      return <p className="mt-3 text-[13px] leading-6 text-[var(--a-body)]">{b.text}</p>;
+    case "checklist":
+      return (
+        <div className="mt-3">
+          {b.intro ? <p className="text-[13px] leading-6 text-[var(--a-body)]">{b.intro}</p> : null}
+          <ul className="mt-4 space-y-2.5">
+            {b.items.map((it, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm text-[var(--a-ink)]/85"><Check width={16} height={16} className="mt-0.5 shrink-0 text-[var(--a-green)]" /><span><span className="font-bold text-[var(--a-ink)]">{it.bold}</span> {it.text}</span></li>
+            ))}
+          </ul>
+        </div>
+      );
+    case "callout": {
+      const Icon = bic(b.icon);
+      const color = b.tone === "pink" ? "text-[#c2506a]" : "text-[var(--a-gold)]";
+      return <div className="mt-4 flex items-start gap-2 rounded-xl bg-[var(--a-green-soft)]/70 p-3.5 text-sm text-[var(--a-ink)]"><Icon width={16} height={16} className={`mt-0.5 shrink-0 ${color}`} /><span>{b.text}</span></div>;
+    }
+    case "image":
+      return (
+        <Reveal>
+          <div className="mt-4 overflow-hidden rounded-2xl">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={b.url} alt={b.alt} className="aspect-[11/5] w-full object-cover" />
+          </div>
+        </Reveal>
+      );
+    case "deliverables":
+      return (
+        <div className="mt-4 grid max-w-[820px] gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
+          {b.items.map((d, i) => {
+            const Icon = bic(d.icon);
+            return (
+              <div key={i} className="rounded-xl border border-[var(--a-line)] bg-white p-4">
+                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--a-green-soft)] text-[var(--a-green)]"><Icon width={17} height={17} /></span>
+                <div className="mt-3 text-sm font-bold text-[var(--a-ink)]">{d.title}</div>
+                <p className="mt-1 text-xs leading-5 text-[var(--a-body)]">{d.sub}</p>
+              </div>
+            );
+          })}
+        </div>
+      );
+    case "quote":
+      return <p className="font-playfair mt-5 border-l-2 border-[var(--a-gold)] pl-4 text-lg italic leading-8 text-[var(--a-ink)]">“{b.text}”</p>;
+    default:
+      return null;
+  }
+}
 
 const u = (id: string, w = 700) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=80`;
 const AVATAR = u("1506794778202-cad84cf45f1d", 120);
@@ -52,7 +110,25 @@ const ShareBtn = ({ children, bg }: { children: React.ReactNode; bg: string }) =
   <a href="#" className="flex h-8 w-8 items-center justify-center rounded-full text-white transition hover:opacity-90" style={{ background: bg }}>{children}</a>
 );
 
-export default function AriaBlogPost(_props: TemplatePageProps) {
+type BlogPostProps = { post?: SiteContent["blog"][number]; cfg?: SiteContent["blogPostPage"] };
+export default function AriaBlogPost({ post, cfg }: BlogPostProps) {
+  const category = post?.category || "Wedding";
+  const heading = post?.title;
+  const excerpt = post?.excerpt || "A simple guide to coverage hours, deliverables, and what actually matters on your big day.";
+  const date = post?.date || "18 Jun 2026";
+  const image = post?.image || u("1519741497674-611481863552", 1000);
+  const body = post?.body || [];
+  const authorName = post?.author || cfg?.author.name || "High On Innovation Team";
+  const authorAvatar = post?.authorImg || cfg?.author.avatar || AVATAR;
+  const authorBio = cfg?.author.bio || "We are a team of passionate photographers and storytellers who believe in capturing real emotions and timeless memories.";
+  const readTime = post?.readTime || "5 min read";
+  const views = post?.views || "1.2k views";
+  const categories = cfg?.sidebar.categories?.length ? cfg.sidebar.categories.map((c) => ({ name: c.name, count: c.count, icon: bic(c.icon) })) : CATEGORIES.map((c) => ({ name: c.name, count: String(c.count), icon: c.icon }));
+  const tags = (post?.tags?.length ? post.tags : cfg?.sidebar.tags) || TAGS;
+  const sideCta = cfg?.sidebar.cta;
+  const searchPh = cfg?.sidebar.searchPlaceholder || "Search blog posts...";
+  const related = cfg?.related;
+  const relatedItems = related?.items?.length ? related.items : RELATED.map((r) => ({ category: r.cat, date: r.date, title: r.title, read: r.read, img: r.img, href: "/blog" }));
   return (
     <main className="aria font-inter bg-[var(--a-cream)] text-[var(--a-ink)]">
       <div className="mx-auto w-full max-w-[1200px] px-5 py-8 sm:px-6 lg:px-8 xl:max-w-[1360px] xl:px-10 2xl:max-w-[1560px] 2xl:px-14">
@@ -60,23 +136,23 @@ export default function AriaBlogPost(_props: TemplatePageProps) {
         <nav className="flex flex-wrap items-center gap-1.5 text-xs text-[var(--a-body)]">
           <a href="/" className="hover:text-[var(--a-green)]">Home</a><span>›</span>
           <a href="/blog" className="hover:text-[var(--a-green)]">Blog</a><span>›</span>
-          <span className="text-[var(--a-ink)]">How to choose your wedding photography package</span>
+          <span className="text-[var(--a-ink)]">{heading || "How to choose your wedding photography package"}</span>
         </nav>
 
         <div className="mt-6 grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px]">
           {/* ── Article ── */}
           <article>
-            <span className="inline-block rounded-md bg-[var(--a-green-soft)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[var(--a-green)]">Wedding</span>
-            <h1 className="font-playfair mt-3 text-[clamp(1.9rem,3.6vw,2rem)] font-bold leading-[1.15] text-[var(--a-ink)]">How to choose your wedding<br />photography package</h1>
-            <p className="mt-3 text-[13px] text-[var(--a-body)]">A simple guide to coverage hours, deliverables, and what actually matters on your big day.</p>
+            <span className="inline-block rounded-md bg-[var(--a-green-soft)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[var(--a-green)]">{category}</span>
+            <h1 className="font-playfair mt-3 text-[clamp(1.9rem,3.6vw,2rem)] font-bold leading-[1.15] text-[var(--a-ink)]">{heading || <>How to choose your wedding<br />photography package</>}</h1>
+            <p className="mt-3 text-[13px] text-[var(--a-body)]">{excerpt}</p>
 
             {/* Meta + share */}
             <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[var(--a-body)]">
-                <span className="flex items-center gap-2">{/* eslint-disable-next-line @next/next/no-img-element */}<img src={AVATAR} alt="" className="h-7 w-7 rounded-full object-cover" /> <span className="font-semibold text-[var(--a-ink)]">By High On Innovation Team</span></span>
-                <span className="flex items-center gap-1">18 Jun 2026</span>
-                <span className="flex items-center gap-1"><Clock width={13} height={13} /> 5 min read</span>
-                <span className="flex items-center gap-1"><Eye width={13} height={13} /> 1.2k views</span>
+                <span className="flex items-center gap-2">{/* eslint-disable-next-line @next/next/no-img-element */}<img src={authorAvatar} alt="" className="h-7 w-7 rounded-full object-cover" /> <span className="font-semibold text-[var(--a-ink)]">By {authorName}</span></span>
+                <span className="flex items-center gap-1">{date}</span>
+                <span className="flex items-center gap-1"><Clock width={13} height={13} /> {readTime}</span>
+                <span className="flex items-center gap-1"><Eye width={13} height={13} /> {views}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-semibold text-[var(--a-body)]">Share:</span>
@@ -91,10 +167,13 @@ export default function AriaBlogPost(_props: TemplatePageProps) {
             <Reveal>
               <div className="mt-6 overflow-hidden rounded-2xl">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={u("1519741497674-611481863552", 1000)} alt="Wedding couple" className="aspect-[100/27] w-full object-cover" />
+                <img src={image} alt={heading || "Wedding couple"} className="aspect-[100/27] w-full object-cover" />
               </div>
             </Reveal>
 
+            {body.length > 0 ? (
+              <div className="mt-6">{body.map((b, i) => <Block key={i} b={b} />)}</div>
+            ) : (<>
             <div className="mt-6">
               <p className="mt-3 text-[13px] text-[var(--a-body)] lg:max-w-[60%]">Your wedding photos are the memories you&apos;ll cherish for a lifetime. But with so many photography packages out there, how do you choose the right one for your big day?</p>
               <p className="mt-3 text-[13px] text-[var(--a-body)] lg:max-w-[60%]">This guide breaks down the key factors to consider so you can pick a package that fits your story, your needs, and your budget.</p>
@@ -161,14 +240,15 @@ export default function AriaBlogPost(_props: TemplatePageProps) {
               <p className="mt-2 text-[13px] leading-6 text-[var(--a-body)]">Talk to your photographer. A quick call can help you understand their process, team, and how comfortable you feel working with them.</p>
               <p className="mt-3 text-[13px] leading-6 text-[var(--a-body)]">Choosing the right wedding photography package is about finding the perfect balance of coverage, deliverables, style, and trust. When you get that right, your photos will tell a story you&apos;ll treasure forever.</p>
             </div>
+            </>)}
 
             {/* Author card */}
             <div className="mt-5 flex max-w-5xl items-start gap-3 rounded-2xl border border-[var(--a-line)] bg-white p-4">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={AVATAR} alt="" className="h-14 w-14 shrink-0 rounded-full object-cover" />
+              <img src={authorAvatar} alt="" className="h-14 w-14 shrink-0 rounded-full object-cover" />
               <div className="max-w-md">
-                <div className="text-sm font-bold text-[var(--a-ink)]">Written by High On Innovation Team</div>
-                <p className="mt-1 text-sm leading-6 text-[var(--a-body)]">We are a team of passionate photographers and storytellers who believe in capturing real emotions and timeless memories.</p>
+                <div className="text-sm font-bold text-[var(--a-ink)]">Written by {authorName}</div>
+                <p className="mt-1 text-sm leading-6 text-[var(--a-body)]">{authorBio}</p>
                 <div className="mt-2 flex gap-2">
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--a-green-soft)] text-[11px] font-black text-[var(--a-green)]">ig</span>
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--a-green-soft)] text-[11px] font-black text-[var(--a-green)]">f</span>
@@ -184,7 +264,7 @@ export default function AriaBlogPost(_props: TemplatePageProps) {
             <div className="rounded-2xl border border-[var(--a-line)] bg-white p-5 shadow-sm">
               <h3 className="text-base font-bold text-[var(--a-ink)]">Search</h3>
               <div className="relative mt-3">
-                <input placeholder="Search blog posts..." className="w-full rounded-lg border border-[var(--a-line)] bg-white px-3.5 py-2.5 pr-10 text-sm outline-none focus:border-[var(--a-green)]/60" />
+                <input placeholder={searchPh} className="w-full rounded-lg border border-[var(--a-line)] bg-white px-3.5 py-2.5 pr-10 text-sm outline-none focus:border-[var(--a-green)]/60" />
                 <Search width={16} height={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--a-body)]" />
               </div>
             </div>
@@ -192,7 +272,7 @@ export default function AriaBlogPost(_props: TemplatePageProps) {
             <div className="rounded-2xl border border-[var(--a-line)] bg-white p-5 shadow-sm">
               <h3 className="text-base font-bold text-[var(--a-ink)]">Categories</h3>
               <ul className="mt-4 space-y-3">
-                {CATEGORIES.map((c) => {
+                {categories.map((c) => {
                   const Icon = c.icon;
                   return (
                     <li key={c.name}><a href="#" className="flex items-center justify-between rounded-lg px-2 py-2.5 text-sm transition hover:bg-[#f6f7f5]">
@@ -219,15 +299,15 @@ export default function AriaBlogPost(_props: TemplatePageProps) {
             {/* CTA */}
             <div className="relative overflow-hidden rounded-2xl bg-[var(--a-green-2)] px-6 py-9 text-white">
               <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/30 bg-white/10 text-white"><Camera width={20} height={20} /></span>
-              <h3 className="font-playfair mt-4 max-w-[175px] text-[15px] font-bold leading-snug">Capture your story beautifully</h3>
-              <p className="mt-2 max-w-[180px] text-[13px] text-white/80">Let&apos;s create memories that last forever.</p>
-              <a href="/contact" className="mt-6 inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-[13px] font-bold text-[var(--a-green-2)] transition hover:bg-white/90">Book a Consultation <ArrowRight width={15} height={15} /></a>
+              <h3 className="font-playfair mt-4 max-w-[175px] text-[15px] font-bold leading-snug">{sideCta?.heading || "Capture your story beautifully"}</h3>
+              <p className="mt-2 max-w-[180px] text-[13px] text-white/80">{sideCta?.subtitle || "Let's create memories that last forever."}</p>
+              <a href={sideCta?.buttonHref || "/contact"} className="mt-6 inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-[13px] font-bold text-[var(--a-green-2)] transition hover:bg-white/90">{sideCta?.buttonLabel || "Book a Consultation"} <ArrowRight width={15} height={15} /></a>
             </div>
             {/* Tags */}
             <div className="rounded-2xl border border-[var(--a-line)] bg-white p-5 shadow-sm">
               <h3 className="text-base font-bold text-[var(--a-ink)]">Tags</h3>
               <div className="mt-3 flex flex-wrap gap-2">
-                {TAGS.map((t) => <a key={t} href="#" className="rounded-full border border-[var(--a-line)] px-3 py-1.5 text-xs font-semibold text-[var(--a-body)] transition hover:border-[var(--a-green)]/40 hover:text-[var(--a-green)]">{t}</a>)}
+                {tags.map((t) => <a key={t} href="#" className="rounded-full border border-[var(--a-line)] px-3 py-1.5 text-xs font-semibold text-[var(--a-body)] transition hover:border-[var(--a-green)]/40 hover:text-[var(--a-green)]">{t}</a>)}
               </div>
             </div>
           </aside>
@@ -238,17 +318,17 @@ export default function AriaBlogPost(_props: TemplatePageProps) {
       <div className="bg-[var(--a-green-soft)]/40">
         <div className="mx-auto w-full max-w-[1200px] px-5 py-10 sm:px-6 lg:px-8 xl:max-w-[1360px] xl:px-10 2xl:max-w-[1560px] 2xl:px-14">
           <div className="flex items-center justify-between">
-            <h2 className="font-playfair text-xl font-bold text-[var(--a-ink)]">You may also like</h2>
-            <a href="/blog" className="inline-flex items-center gap-1 text-[13px] font-bold text-[var(--a-green)]">View all posts <ArrowRight width={14} height={14} /></a>
+            <h2 className="font-playfair text-xl font-bold text-[var(--a-ink)]">{related?.heading || "You may also like"}</h2>
+            <a href={related?.viewAllHref || "/blog"} className="inline-flex items-center gap-1 text-[13px] font-bold text-[var(--a-green)]">{related?.viewAllLabel || "View all posts"} <ArrowRight width={14} height={14} /></a>
           </div>
           <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {RELATED.map((p) => (
-              <motion.article key={p.title} whileHover={{ y: -4 }} transition={{ type: "spring", stiffness: 300, damping: 22 }} className="flex flex-col overflow-hidden rounded-2xl border border-[var(--a-line)] bg-white shadow-sm">
-                <div className="relative">
+            {relatedItems.map((p, i) => (
+              <motion.article key={`${p.title}-${i}`} whileHover={{ y: -4 }} transition={{ type: "spring", stiffness: 300, damping: 22 }} className="flex flex-col overflow-hidden rounded-2xl border border-[var(--a-line)] bg-white shadow-sm">
+                <a href={(p as { href?: string }).href || "/blog"} className="relative">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={p.img} alt={p.title} className="aspect-[16/5] w-full object-cover" />
-                  <span className="absolute left-3 top-3 rounded-md bg-white/95 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[var(--a-ink)]">{p.cat}</span>
-                </div>
+                  <span className="absolute left-3 top-3 rounded-md bg-white/95 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[var(--a-ink)]">{p.category}</span>
+                </a>
                 <div className="flex flex-1 flex-col p-4">
                   <span className="text-xs font-semibold text-[var(--a-green)]">{p.date}</span>
                   <h3 className="font-playfair mt-1.5 text-[13px] font-bold leading-snug text-[var(--a-ink)]">{p.title}</h3>

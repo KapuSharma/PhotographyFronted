@@ -67,14 +67,39 @@ const CARDS: { img: string; w: number; left: string; top: string; rot: number; g
   { img: P.hiker, w: 114, left: "66%", top: "50%", rot: 10, gray: true },   // B&W landscape
 ];
 
+/* Map CMS icon keys → glyphs used across this page. */
+const ICONS: Record<string, LucideIcon> = { camera: Camera, star: Star, heart: Heart, message: MessageCircle, share: Share2, shield: ShieldCheck, image: Images };
+const ic = (k?: string): LucideIcon => (k && ICONS[k]) || Camera;
+
 /* ── shared wrappers ── */
 const Wrap = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
   <section className={`mx-auto w-full max-w-[1200px] px-5 sm:px-6 lg:px-8 xl:max-w-[1360px] xl:px-10 2xl:max-w-[1560px] 2xl:px-14 ${className}`}>{children}</section>
 );
 
-export default function AriaGallery(_props: TemplatePageProps) {
+export default function AriaGallery({ content }: TemplatePageProps) {
+  // CMS content (galleryPage blob + portfolio/categories), falling back to the
+  // placeholder data so the template still renders standalone.
+  const gp = content?.galleryPage;
+  const eyebrow = gp?.hero.eyebrow || "Our Gallery";
+  const title = gp?.hero.title || "Gallery";
+  const subtitle = gp?.hero.subtitle || "A collection of real moments, captured with creativity and passion.";
+  const heroStats = gp?.hero.stats?.length
+    ? gp.hero.stats.map((s) => ({ Icon: ic(s.icon), value: s.value, label: s.label }))
+    : HERO_STATS.map((s) => ({ Icon: s.icon, value: s.value, label: s.label }));
+  const categories = content?.galleryCategories?.length ? ["All", ...content.galleryCategories] : CATEGORIES;
+  const items: { title: string; category: string; count?: number; img: string }[] = content?.portfolio?.length
+    ? content.portfolio.map((p) => ({ title: p.title, category: p.category, img: p.src }))
+    : GALLERY;
+  const features = gp?.features.active === false
+    ? []
+    : gp?.features.items?.length
+      ? gp.features.items.map((f) => ({ Icon: ic(f.icon), title: f.title, text: f.text }))
+      : FEATURES.map((f) => ({ Icon: f.icon, title: f.title, text: f.text }));
+  const cta = gp?.cta;
+  const ctaActive = cta?.active !== false;
+
   const [filter, setFilter] = useState("All");
-  const shown = filter === "All" ? GALLERY : GALLERY.filter((g) => g.category === filter);
+  const shown = filter === "All" ? items : items.filter((g) => g.category === filter);
 
   return (
     <main className="aria font-inter bg-[var(--a-cream)] text-[var(--a-ink)]">
@@ -100,13 +125,13 @@ export default function AriaGallery(_props: TemplatePageProps) {
         <div className="absolute inset-0">
           <div className="mx-auto flex h-full w-full max-w-[1200px] items-center px-5 py-6 sm:px-6 lg:px-8 xl:max-w-[1360px] xl:px-10 2xl:max-w-[1560px] 2xl:px-14">
             <div className="max-w-xl md:max-w-[48%]">
-              <Reveal><p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.16em] text-[var(--a-green)]"><ArrowRight width={12} height={12} /> Our Gallery</p></Reveal>
-              <Reveal delay={0.06}><h1 className="font-playfair mt-2 text-[2.4rem] font-bold leading-[1.15] text-[var(--a-ink)] md:text-[2.75rem]">Gallery</h1></Reveal>
-              <Reveal delay={0.12}><p className="mt-3 max-w-md text-[15px] leading-7 text-[var(--a-body)]">A collection of real moments, captured with creativity and passion.</p></Reveal>
+              <Reveal><p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.16em] text-[var(--a-green)]"><ArrowRight width={12} height={12} /> {eyebrow}</p></Reveal>
+              <Reveal delay={0.06}><h1 className="font-playfair mt-2 text-[2.4rem] font-bold leading-[1.15] text-[var(--a-ink)] md:text-[2.75rem]">{title}</h1></Reveal>
+              <Reveal delay={0.12}><p className="mt-3 max-w-md text-[15px] leading-7 text-[var(--a-body)]">{subtitle}</p></Reveal>
               <Stagger className="mt-5 flex flex-wrap gap-x-8 gap-y-4">
-                {HERO_STATS.map((s) => (
-                  <StaggerItem key={s.label} className="flex items-center gap-2.5">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--a-green-soft)] text-[var(--a-green)]"><s.icon width={18} height={18} /></span>
+                {heroStats.map((s, i) => (
+                  <StaggerItem key={s.label || i} className="flex items-center gap-2.5">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--a-green-soft)] text-[var(--a-green)]"><s.Icon width={18} height={18} /></span>
                     <div>
                       <div className="text-base font-extrabold text-[var(--a-green)]">{s.value}</div>
                       <div className="text-[11px] font-semibold uppercase tracking-wide text-[var(--a-body)]">{s.label}</div>
@@ -116,7 +141,7 @@ export default function AriaGallery(_props: TemplatePageProps) {
               </Stagger>
               <Reveal delay={0.2} className="mt-5">
                 <div className="flex flex-wrap gap-2">
-                  {CATEGORIES.map((c) => (
+                  {categories.map((c) => (
                     <button key={c} onClick={() => setFilter(c)}
                       className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
                         filter === c ? "bg-[var(--a-green-2)] text-white shadow-sm"
@@ -135,17 +160,19 @@ export default function AriaGallery(_props: TemplatePageProps) {
         <Reveal>
           <motion.div layout className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <AnimatePresence mode="popLayout">
-              {shown.map((g) => (
-                <motion.div key={g.title} layout initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.92 }} transition={{ duration: 0.4, ease: EASE }}>
+              {shown.map((g, i) => (
+                <motion.div key={g.img || g.title || i} layout initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.92 }} transition={{ duration: 0.4, ease: EASE }}>
                   <div className="aria-perspective">
                     <Tilt intensity={6} lift={false} className="aria-preserve-3d">
                       <div className="group relative aspect-[16/10] overflow-hidden rounded-xl shadow-md">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={g.img} alt={g.title} className="h-full w-full object-cover transition duration-700 group-hover:scale-110" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
-                        <span className="absolute bottom-3.5 right-3.5 inline-flex items-center gap-1 rounded-md bg-black/45 px-2 py-1 text-[11px] font-semibold text-white backdrop-blur">
-                          <Images width={13} height={13} /> {g.count}
-                        </span>
+                        {g.count != null && (
+                          <span className="absolute bottom-3.5 right-3.5 inline-flex items-center gap-1 rounded-md bg-black/45 px-2 py-1 text-[11px] font-semibold text-white backdrop-blur">
+                            <Images width={13} height={13} /> {g.count}
+                          </span>
+                        )}
                         <div className="absolute inset-x-0 bottom-0 p-4">
                           <div className="text-[13px] font-bold text-white">{g.title}</div>
                           <div className="text-xs text-white/70">{g.category}</div>
@@ -168,35 +195,41 @@ export default function AriaGallery(_props: TemplatePageProps) {
       </Wrap>
 
       {/* ── Features band + project CTA ── */}
-      <Wrap className="pb-12">
-        <Reveal>
-          <div className="grid overflow-hidden rounded-2xl border border-[var(--a-line)] bg-[var(--a-green-soft)]/45 lg:grid-cols-[1fr_auto]">
-            {/* 4 features — icon left, text right, subtle vertical dividers */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 sm:divide-x sm:divide-[var(--a-line)] lg:grid-cols-4">
-              {FEATURES.map((f) => (
-                <div key={f.title} className="flex items-start gap-3 p-5">
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--a-green-soft)] text-[var(--a-green)]"><f.icon width={18} height={18} /></span>
-                  <div>
-                    <h4 className="text-sm font-bold text-[var(--a-ink)]">{f.title}</h4>
-                    <p className="mt-1 text-xs leading-5 text-[var(--a-body)]">{f.text}</p>
-                  </div>
+      {(features.length > 0 || ctaActive) && (
+        <Wrap className="pb-12">
+          <Reveal>
+            <div className="grid overflow-hidden rounded-2xl border border-[var(--a-line)] bg-[var(--a-green-soft)]/45 lg:grid-cols-[1fr_auto]">
+              {/* features — icon left, text right, subtle vertical dividers */}
+              {features.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 sm:divide-x sm:divide-[var(--a-line)] lg:grid-cols-4">
+                  {features.map((f, i) => (
+                    <div key={f.title || i} className="flex items-start gap-3 p-5">
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--a-green-soft)] text-[var(--a-green)]"><f.Icon width={18} height={18} /></span>
+                      <div>
+                        <h4 className="text-sm font-bold text-[var(--a-ink)]">{f.title}</h4>
+                        <p className="mt-1 text-xs leading-5 text-[var(--a-body)]">{f.text}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
+              {/* green CTA card filling the right */}
+              {ctaActive && (
+                <div className="flex flex-col justify-center bg-[var(--a-green-2)] p-6 text-white lg:min-w-[300px]">
+                  <h4 className="font-playfair text-lg font-bold">{cta?.title || "Have a project in mind?"}</h4>
+                  <p className="mt-1.5 text-sm text-white/70">{cta?.subtitle || "Let's create something beautiful together."}</p>
+                  <a href={cta?.buttonHref || "/contact"} className="mt-4 inline-flex w-fit items-center gap-2 rounded-lg border border-white/40 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-white hover:text-[var(--a-green-2)]">
+                    {cta?.buttonLabel || "Contact us"} <ArrowRight width={15} height={15} />
+                  </a>
+                </div>
+              )}
             </div>
-            {/* green CTA card filling the right */}
-            <div className="flex flex-col justify-center bg-[var(--a-green-2)] p-6 text-white lg:min-w-[300px]">
-              <h4 className="font-playfair text-lg font-bold">Have a project in mind?</h4>
-              <p className="mt-1.5 text-sm text-white/70">Let&apos;s create something beautiful together.</p>
-              <a href="#" className="mt-4 inline-flex w-fit items-center gap-2 rounded-lg border border-white/40 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-white hover:text-[var(--a-green-2)]">
-                Contact us <ArrowRight width={15} height={15} />
-              </a>
-            </div>
-          </div>
-        </Reveal>
-      </Wrap>
+          </Reveal>
+        </Wrap>
+      )}
 
       {/* ── Common lower-page sections (each CMS-toggleable later) ── */}
-      <CommonSections />
+      <CommonSections content={content} page="gallery" />
     </main>
   );
 }

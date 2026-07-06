@@ -23,7 +23,7 @@ import AriaHome from "@/templates/aria/home";
    (public site rendering, dashboard gallery) reads from this list.
    ===================================================================== */
 
-export const DEFAULT_TEMPLATE = "aurora";
+export const DEFAULT_TEMPLATE = "aria";
 
 export const TEMPLATES: Record<string, Template> = {
   aurora: { manifest: auroraManifest, Home: AuroraHome },

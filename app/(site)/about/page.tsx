@@ -1,14 +1,20 @@
+import { getSite } from "@/lib/get-site";
 import { getTemplate } from "@/templates/registry";
 
-/* About route — renders the active template's About page via the registry.
-
-   FRONTEND ONLY for now: pinned to the new "aria" template we're building.
-   During CMS wiring this becomes the tenant's resolved template (same pattern
-   as HomeRenderer), and templates without an About fall back to a shared page. */
+/* About route — renders the active template's About page via the registry,
+   fed the tenant's resolved SiteContent (falls back to mock content). */
 const ACTIVE_TEMPLATE = "aria";
 
-export default function AboutPage() {
+export default async function AboutPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = await searchParams;
+  const domain = typeof sp.domain === "string" ? sp.domain : undefined;
+  const site = await getSite({ domain });
+
   const { About } = getTemplate(ACTIVE_TEMPLATE);
   if (!About) return null;
-  return <About />;
+  return <About content={site.content} />;
 }

@@ -14,8 +14,14 @@ import {
 } from "lucide-react";
 
 import { Reveal, Stagger, StaggerItem } from "./motion";
+import type { SiteContent } from "@/templates/types";
 
+type WithContent = { content?: SiteContent };
 const u = (id: string, w = 600) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=80`;
+
+/* CMS icon-key → glyph map for the services strip. */
+const CS_ICONS: Record<string, LucideIcon> = { heart: Heart, users: Users, baby: Baby, briefcase: Briefcase, package: PackageIcon, party: PartyPopper };
+const csic = (k?: string): LucideIcon => (k && CS_ICONS[k]) || Heart;
 
 /* ── placeholder data ── */
 const CLIENTS = ["TATA", "KPMG", "amazon", "wipro", "airtel", "Deloitte."];
@@ -60,8 +66,8 @@ const Eyebrow = ({ children, tone = "green" }: { children: React.ReactNode; tone
 const Title = ({ children }: { children: React.ReactNode }) => (
   <h2 className="font-playfair mt-2 text-[clamp(1.6rem,2.6vw,2.1rem)] font-bold leading-tight text-[var(--a-ink)]">{children}</h2>
 );
-const ViewAll = ({ children, tone = "green" }: { children: React.ReactNode; tone?: "green" | "gold" | "blue" }) => (
-  <a href="#" className={`mt-4 inline-flex items-center gap-1.5 text-sm font-bold transition-all hover:gap-2.5 ${tone === "gold" ? "text-[var(--a-gold)]" : tone === "blue" ? "text-[#3b6ea5]" : "text-[var(--a-green)]"}`}>{children} <ArrowRight width={15} height={15} /></a>
+const ViewAll = ({ children, tone = "green", href = "#" }: { children: React.ReactNode; tone?: "green" | "gold" | "blue"; href?: string }) => (
+  <a href={href} className={`mt-4 inline-flex items-center gap-1.5 text-sm font-bold transition-all hover:gap-2.5 ${tone === "gold" ? "text-[var(--a-gold)]" : tone === "blue" ? "text-[#3b6ea5]" : "text-[var(--a-green)]"}`}>{children} <ArrowRight width={15} height={15} /></a>
 );
 /* Each section is a rounded, contained panel (gaps show the page bg between them). */
 const Band = ({ children, bg }: { children: React.ReactNode; bg: string }) => (
@@ -71,17 +77,19 @@ const Band = ({ children, bg }: { children: React.ReactNode; bg: string }) => (
 );
 
 /* ── 1. Our Clients ── */
-export function ClientsSection() {
+export function ClientsSection({ content }: WithContent) {
+  const d = content?.commonSections?.clients;
+  const logos = d?.logos?.length ? d.logos : CLIENTS;
   return (
     <Band bg="#f3f4f5">
       <Reveal>
-        <Eyebrow>Our Clients</Eyebrow>
-        <Title>Trusted by amazing<br className="hidden lg:block" /> brands &amp; people</Title>
-        <p className="mt-3 max-w-xs text-sm leading-6 text-[var(--a-body)]">Proud to work with some of the most inspiring brands and wonderful people.</p>
-        <ViewAll>View all clients</ViewAll>
+        <Eyebrow>{d?.eyebrow || "Our Clients"}</Eyebrow>
+        <Title>{d?.title || "Trusted by amazing brands & people"}</Title>
+        <p className="mt-3 max-w-xs text-sm leading-6 text-[var(--a-body)]">{d?.paragraph || "Proud to work with some of the most inspiring brands and wonderful people."}</p>
+        <ViewAll href={d?.viewAllHref || "#"}>{d?.viewAllLabel || "View all clients"}</ViewAll>
       </Reveal>
       <Stagger className="flex flex-wrap items-center justify-between gap-y-6 md:border-l md:border-[var(--a-line)] md:pl-10">
-        {CLIENTS.map((c) => (
+        {logos.map((c) => (
           <StaggerItem key={c} className="w-1/3 text-center md:w-auto md:flex-1">
             <span className="text-lg font-black tracking-tight text-[var(--a-ink)]/40 transition hover:text-[var(--a-green)] md:text-xl">{c}</span>
           </StaggerItem>
@@ -92,17 +100,19 @@ export function ClientsSection() {
 }
 
 /* ── 2. Stories / Testimonials ── */
-export function StoriesSection() {
+export function StoriesSection({ content }: WithContent) {
+  const d = content?.commonSections?.stories;
+  const items = d?.items?.length ? d.items : STORIES;
   return (
     <Band bg="#faf5ec">
       <Reveal>
-        <Eyebrow tone="gold">What Our Clients Say</Eyebrow>
-        <Title>Stories that<br className="hidden lg:block" /> make us proud</Title>
-        <p className="mt-3 max-w-xs text-sm leading-6 text-[var(--a-body)]">Real words from real people who trusted us with their special moments.</p>
-        <ViewAll tone="gold">View all reviews</ViewAll>
+        <Eyebrow tone="gold">{d?.eyebrow || "What Our Clients Say"}</Eyebrow>
+        <Title>{d?.title || "Stories that make us proud"}</Title>
+        <p className="mt-3 max-w-xs text-sm leading-6 text-[var(--a-body)]">{d?.paragraph || "Real words from real people who trusted us with their special moments."}</p>
+        <ViewAll tone="gold" href={d?.viewAllHref || "/reviews"}>{d?.viewAllLabel || "View all reviews"}</ViewAll>
       </Reveal>
       <Stagger className="grid gap-4 sm:grid-cols-3">
-        {STORIES.map((s) => (
+        {items.map((s) => (
           <StaggerItem key={s.name}>
             <div className="flex h-full flex-col rounded-2xl bg-white p-5 shadow-sm">
               <Quote width={26} height={26} className="text-[var(--a-gold)]" />
@@ -125,19 +135,21 @@ export function StoriesSection() {
 }
 
 /* ── 3. Latest from Blog ── */
-export function BlogSection() {
+export function BlogSection({ content }: WithContent) {
+  const d = content?.commonSections?.blog;
+  const items = d?.items?.length ? d.items : BLOG;
   return (
     <Band bg="#eef3f6">
       <Reveal>
-        <Eyebrow tone="blue">Latest from Blog</Eyebrow>
-        <Title>Tips, ideas &amp;<br className="hidden lg:block" /> inspiration for your next shoot</Title>
-        <p className="mt-3 max-w-xs text-sm leading-6 text-[var(--a-body)]">Explore our latest blogs and guides to plan better and create beautiful memories.</p>
-        <ViewAll tone="blue">View all posts</ViewAll>
+        <Eyebrow tone="blue">{d?.eyebrow || "Latest from Blog"}</Eyebrow>
+        <Title>{d?.title || "Tips, ideas & inspiration for your next shoot"}</Title>
+        <p className="mt-3 max-w-xs text-sm leading-6 text-[var(--a-body)]">{d?.paragraph || "Explore our latest blogs and guides to plan better and create beautiful memories."}</p>
+        <ViewAll tone="blue" href={d?.viewAllHref || "/blog"}>{d?.viewAllLabel || "View all posts"}</ViewAll>
       </Reveal>
       <Stagger className="grid gap-5 sm:grid-cols-3 md:border-l md:border-[var(--a-line)] md:pl-10">
-        {BLOG.map((b) => (
+        {items.map((b) => (
           <StaggerItem key={b.title}>
-            <a href="#" className="group flex gap-3">
+            <a href={(b as { href?: string }).href || "#"} className="group flex gap-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={b.img} alt="" className="h-16 w-16 shrink-0 rounded-lg object-cover" />
               <div>
@@ -154,20 +166,22 @@ export function BlogSection() {
 }
 
 /* ── 4. Our Services ── */
-export function ServicesSection() {
+export function ServicesSection({ content }: WithContent) {
+  const d = content?.commonSections?.services;
+  const items = d?.items?.length ? d.items.map((s) => ({ Icon: csic(s.icon), name: s.name, desc: s.desc })) : SERVICES.map((s) => ({ Icon: s.icon, name: s.name, desc: s.desc }));
   return (
     <Band bg="#f3f4f5">
       <Reveal>
-        <Eyebrow>Our Services</Eyebrow>
-        <Title>What we do best</Title>
-        <p className="mt-3 max-w-xs text-sm leading-6 text-[var(--a-body)]">From timeless weddings to stunning portraits, we capture it all.</p>
-        <ViewAll>View all services</ViewAll>
+        <Eyebrow>{d?.eyebrow || "Our Services"}</Eyebrow>
+        <Title>{d?.title || "What we do best"}</Title>
+        <p className="mt-3 max-w-xs text-sm leading-6 text-[var(--a-body)]">{d?.paragraph || "From timeless weddings to stunning portraits, we capture it all."}</p>
+        <ViewAll href={d?.viewAllHref || "/services"}>{d?.viewAllLabel || "View all services"}</ViewAll>
       </Reveal>
       <Stagger className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        {SERVICES.map((s) => (
+        {items.map((s) => (
           <StaggerItem key={s.name}>
             <div className="h-full rounded-2xl bg-white p-4 text-center shadow-sm transition hover:-translate-y-1">
-              <s.icon width={26} height={26} strokeWidth={1.5} className="mx-auto text-[var(--a-green)]" />
+              <s.Icon width={26} height={26} strokeWidth={1.5} className="mx-auto text-[var(--a-green)]" />
               <h4 className="mt-3 text-xs font-bold leading-tight text-[var(--a-ink)]">{s.name}</h4>
               <p className="mt-1.5 text-[11px] leading-4 text-[var(--a-body)]">{s.desc}</p>
             </div>
@@ -179,17 +193,19 @@ export function ServicesSection() {
 }
 
 /* ── 5. Our Packages ── */
-export function PackagesSection() {
+export function PackagesSection({ content }: WithContent) {
+  const d = content?.commonSections?.packages;
+  const items = d?.items?.length ? d.items : PACKAGES;
   return (
     <Band bg="#faf5ec">
       <Reveal>
-        <Eyebrow tone="gold">Our Packages</Eyebrow>
-        <Title>Packages that<br className="hidden lg:block" /> fit your needs</Title>
-        <p className="mt-3 max-w-xs text-sm leading-6 text-[var(--a-body)]">Flexible packages for every occasion and every budget.</p>
-        <ViewAll tone="gold">View all packages</ViewAll>
+        <Eyebrow tone="gold">{d?.eyebrow || "Our Packages"}</Eyebrow>
+        <Title>{d?.title || "Packages that fit your needs"}</Title>
+        <p className="mt-3 max-w-xs text-sm leading-6 text-[var(--a-body)]">{d?.paragraph || "Flexible packages for every occasion and every budget."}</p>
+        <ViewAll tone="gold" href={d?.viewAllHref || "/packages"}>{d?.viewAllLabel || "View all packages"}</ViewAll>
       </Reveal>
       <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {PACKAGES.map((p) => (
+        {items.map((p) => (
           <StaggerItem key={p.name}>
             <div className={`flex h-full flex-col overflow-hidden rounded-2xl border bg-white shadow-sm ${p.popular ? "border-[var(--a-green)]/40 ring-2 ring-[var(--a-green)]/15" : "border-[var(--a-line)]"}`}>
               {p.img ? (
@@ -210,7 +226,7 @@ export function PackagesSection() {
                     {p.features.map((f) => <li key={f} className="flex items-center gap-1.5 text-[11px] text-[var(--a-body)]"><Check width={12} height={12} className="text-[var(--a-green)]" /> {f}</li>)}
                   </ul>
                 )}
-                <a href="#" className={`mt-4 inline-flex items-center justify-center rounded-lg px-4 py-2 text-xs font-bold transition ${p.popular ? "bg-[var(--a-green-2)] text-white hover:bg-[var(--a-green)]" : "border border-[var(--a-green)]/40 text-[var(--a-green)] hover:bg-[var(--a-green)] hover:text-white"}`}>{p.cta}</a>
+                <a href={(p as { href?: string }).href || "#"} className={`mt-4 inline-flex items-center justify-center rounded-lg px-4 py-2 text-xs font-bold transition ${p.popular ? "bg-[var(--a-green-2)] text-white hover:bg-[var(--a-green)]" : "border border-[var(--a-green)]/40 text-[var(--a-green)] hover:bg-[var(--a-green)] hover:text-white"}`}>{p.cta}</a>
               </div>
             </div>
           </StaggerItem>
@@ -221,43 +237,47 @@ export function PackagesSection() {
 }
 
 /* ── 6. Contact ── */
-const Social = ({ children }: { children: React.ReactNode }) => (
-  <a href="#" className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[var(--a-green)] shadow-sm ring-1 ring-[var(--a-line)] transition hover:bg-[var(--a-green)] hover:text-white">{children}</a>
+const Social = ({ children, href = "#" }: { children: React.ReactNode; href?: string }) => (
+  <a href={href} className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[var(--a-green)] shadow-sm ring-1 ring-[var(--a-line)] transition hover:bg-[var(--a-green)] hover:text-white">{children}</a>
 );
-export function ContactSection() {
+const SOCIAL_GLYPH: Record<string, string> = { facebook: "f", instagram: "I", whatsapp: "W", pinterest: "P", twitter: "t", youtube: "Y", linkedin: "in" };
+export function ContactSection({ content }: WithContent) {
+  const d = content?.commonSections?.contact;
+  const c = { address: d?.address || CONTACT.address, phone: d?.phone || CONTACT.phone, email: d?.email || CONTACT.email, hours: d?.hours || CONTACT.hours };
+  const socials = d?.socials?.length ? d.socials : [{ label: "Facebook", url: "#" }, { label: "Instagram", url: "#" }, { label: "WhatsApp", url: "#" }, { label: "Pinterest", url: "#" }];
+  const f = d?.form;
   const input = "w-full rounded-lg border border-[var(--a-line)] bg-white px-3.5 py-2.5 text-sm text-[var(--a-ink)] outline-none placeholder:text-[var(--a-body)]/70 focus:border-[var(--a-green)]";
   return (
     <Wrap>
       <div style={{ background: "#eef3f6" }} className="grid gap-10 rounded-2xl px-6 py-10 md:grid-cols-2 md:px-10 md:py-12">
         <Reveal>
-          <Eyebrow tone="blue">Contact Us</Eyebrow>
-          <h2 className="font-playfair mt-2 text-[clamp(1.7rem,2.8vw,2.3rem)] font-bold leading-tight text-[var(--a-ink)]">Let&apos;s capture something<br className="hidden lg:block" /> beautiful together</h2>
-          <p className="mt-3 max-w-md text-sm leading-6 text-[var(--a-body)]">We would love to hear from you. Reach out to discuss your ideas and bookings.</p>
+          <Eyebrow tone="blue">{d?.eyebrow || "Contact Us"}</Eyebrow>
+          <h2 className="font-playfair mt-2 text-[clamp(1.7rem,2.8vw,2.3rem)] font-bold leading-tight text-[var(--a-ink)]">{d?.heading || "Let's capture something beautiful together"}</h2>
+          <p className="mt-3 max-w-md text-sm leading-6 text-[var(--a-body)]">{d?.paragraph || "We would love to hear from you. Reach out to discuss your ideas and bookings."}</p>
           <ul className="mt-6 space-y-3.5 text-sm text-[var(--a-body)]">
-            <li className="flex items-start gap-3"><MapPin width={17} height={17} className="mt-0.5 text-[var(--a-green)]" /> {CONTACT.address}</li>
-            <li className="flex items-center gap-3"><Phone width={17} height={17} className="text-[var(--a-green)]" /> {CONTACT.phone}</li>
-            <li className="flex items-center gap-3"><Mail width={17} height={17} className="text-[var(--a-green)]" /> {CONTACT.email}</li>
-            <li className="flex items-center gap-3"><Clock width={17} height={17} className="text-[var(--a-green)]" /> {CONTACT.hours}</li>
+            <li className="flex items-start gap-3"><MapPin width={17} height={17} className="mt-0.5 text-[var(--a-green)]" /> {c.address}</li>
+            <li className="flex items-center gap-3"><Phone width={17} height={17} className="text-[var(--a-green)]" /> {c.phone}</li>
+            <li className="flex items-center gap-3"><Mail width={17} height={17} className="text-[var(--a-green)]" /> {c.email}</li>
+            <li className="flex items-center gap-3"><Clock width={17} height={17} className="text-[var(--a-green)]" /> {c.hours}</li>
           </ul>
           <div className="mt-6 flex gap-2.5">
-            <Social><span className="text-sm font-bold">f</span></Social>
-            <Social><span className="text-sm font-bold">I</span></Social>
-            <Social><span className="text-sm font-bold">W</span></Social>
-            <Social><span className="text-sm font-bold">P</span></Social>
+            {socials.map((s, i) => (
+              <Social key={i} href={s.url || "#"}><span className="text-sm font-bold">{SOCIAL_GLYPH[(s.label || "").toLowerCase()] || (s.label || "?").charAt(0)}</span></Social>
+            ))}
           </div>
         </Reveal>
 
         <Reveal delay={0.1}>
           <form className="rounded-2xl bg-white p-6 shadow-sm" onSubmit={(e) => e.preventDefault()}>
             <div className="grid gap-4 sm:grid-cols-2">
-              <input className={input} placeholder="Your Name" />
-              <input className={input} type="email" placeholder="Your Email" />
-              <input className={input} placeholder="Your Phone" />
-              <input className={input} placeholder="Subject" />
+              <input className={input} placeholder={f?.name || "Your Name"} />
+              <input className={input} type="email" placeholder={f?.email || "Your Email"} />
+              <input className={input} placeholder={f?.phone || "Your Phone"} />
+              <input className={input} placeholder={f?.subject || "Subject"} />
             </div>
-            <textarea rows={5} className={`${input} mt-4`} placeholder="Tell us about your requirement" />
+            <textarea rows={5} className={`${input} mt-4`} placeholder={f?.message || "Tell us about your requirement"} />
             <button className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[var(--a-green-2)] px-6 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[var(--a-green)]">
-              Send Message <Send width={15} height={15} />
+              {f?.submit || "Send Message"} <Send width={15} height={15} />
             </button>
           </form>
         </Reveal>
@@ -267,15 +287,19 @@ export function ContactSection() {
 }
 
 /* All common sections in order (each will become CMS-toggleable). */
-export function CommonSections() {
-  return (
-    <div className="space-y-5 py-5">
-      <ClientsSection />
-      <StoriesSection />
-      <BlogSection />
-      <ServicesSection />
-      <PackagesSection />
-      <ContactSection />
-    </div>
-  );
+export function CommonSections({ content, page = "gallery" }: WithContent & { page?: string }) {
+  const cs = content?.commonSections;
+  // A strip shows on a page when it's active AND its `pages` list includes it.
+  // With no CMS content (mock), everything defaults to the gallery page.
+  const on = (s?: { active: boolean; pages?: string[] }) =>
+    s ? s.active !== false && (s.pages || ["gallery"]).includes(page) : page === "gallery";
+  const strips: React.ReactNode[] = [];
+  if (on(cs?.clients)) strips.push(<ClientsSection key="clients" content={content} />);
+  if (on(cs?.stories)) strips.push(<StoriesSection key="stories" content={content} />);
+  if (on(cs?.blog)) strips.push(<BlogSection key="blog" content={content} />);
+  if (on(cs?.services)) strips.push(<ServicesSection key="services" content={content} />);
+  if (on(cs?.packages)) strips.push(<PackagesSection key="packages" content={content} />);
+  if (on(cs?.contact)) strips.push(<ContactSection key="contact" content={content} />);
+  if (strips.length === 0) return null;
+  return <div className="space-y-5 py-5">{strips}</div>;
 }

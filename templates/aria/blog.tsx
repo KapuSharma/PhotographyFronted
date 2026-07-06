@@ -7,11 +7,11 @@
    ===================================================================== */
 
 import { useState } from "react";
-import Image from "next/image";
 import { LayoutGrid, ArrowRight, Clock, Sparkles, Mail, Send, PenLine } from "lucide-react";
 import { motion } from "motion/react";
 
 import { Reveal } from "./motion";
+import { CommonSections } from "./common";
 import type { TemplatePageProps } from "@/templates/types";
 
 const u = (id: string, w = 600) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=80`;
@@ -41,11 +41,32 @@ const Wrap = ({ children, className = "" }: { children: React.ReactNode; classNa
   <section className={`mx-auto w-full max-w-[1200px] px-5 sm:px-6 lg:px-8 xl:max-w-[1360px] xl:px-10 2xl:max-w-[1560px] 2xl:px-14 ${className}`}>{children}</section>
 );
 const cn = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(" ");
+const slug = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+const stripHtml = (s: string) => (s || "").replace(/<[^>]*>/g, " ").replace(/&nbsp;/gi, " ").replace(/&amp;/gi, "&").replace(/&quot;/gi, '"').replace(/&#39;/gi, "'").replace(/\s+/g, " ").trim();
 
-export default function AriaBlog(_props: TemplatePageProps) {
+export default function AriaBlog({ content }: TemplatePageProps) {
+  const bp = content?.blogPage;
+  const heroEyebrow = bp?.hero.eyebrow || "Our Blog";
+  const heroTitle = bp?.hero.title || "Stories, tips & inspiration for better";
+  const heroAccent = bp?.hero.accent || "memories";
+  const heroSubtitle = bp?.hero.subtitle || "Real stories, practical tips and creative inspiration to help you plan your perfect shoot.";
+  const news = bp?.newsletter;
+  const newsActive = news?.active !== false;
+  const heroImg = bp?.hero.image || HERO_IMG;
+  const popular = bp?.popular;
+  const popularItems = popular?.items?.length ? popular.items : POPULAR.map((p) => ({ title: p.title, date: p.date, img: p.img, href: "/blog" }));
+  const suggest = bp?.suggest;
+
+  const allPosts = content?.blog?.length
+    ? content.blog.map((b) => ({ cat: b.category || "", date: b.date, title: b.title, excerpt: stripHtml(b.excerpt), read: "5 min read", img: b.image }))
+    : null;
+  const featured = allPosts?.length ? allPosts[0] : FEATURED;
+  const basePosts = allPosts?.length ? allPosts.slice(1) : POSTS;
+
   const [tab, setTab] = useState("All Posts");
   const [email, setEmail] = useState("");
   const [subbed, setSubbed] = useState(false);
+  const shown = tab === "All Posts" ? basePosts : basePosts.filter((p) => p.cat === tab);
 
   return (
     <main className="aria font-inter bg-[var(--a-cream)] text-[var(--a-body)]">
@@ -53,13 +74,11 @@ export default function AriaBlog(_props: TemplatePageProps) {
       <section className="relative h-[230px] w-full overflow-hidden bg-[#f7f6f4] sm:h-[260px] md:h-[290px]">
         {/* Full-bleed image, anchored right so the camera always shows; the empty
             cream left (under the text) is the part that gets cropped as it fills. */}
-        <Image
-          src={HERO_IMG}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={heroImg}
           alt="Flat-lay: notebook 'Create Memories', camera, latte and eucalyptus"
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover object-right"
+          className="absolute inset-0 h-full w-full object-cover object-right"
         />
         {/* Left→right readability gradient, matched to the image's cream (#f7f6f4). */}
         <div className="absolute inset-0 bg-gradient-to-r from-[#f7f6f4] via-[#f7f6f4]/80 to-transparent" />
@@ -67,13 +86,13 @@ export default function AriaBlog(_props: TemplatePageProps) {
         <div className="absolute inset-0">
           <div className="mx-auto flex h-full w-full max-w-[1200px] items-center px-5 sm:px-6 lg:px-8 xl:max-w-[1360px] xl:px-10 2xl:max-w-[1560px] 2xl:px-14">
             <div className="max-w-xl">
-              <Reveal><p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.16em] text-[var(--a-green)]"><ArrowRight width={12} height={12} /> Our Blog</p></Reveal>
+              <Reveal><p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.16em] text-[var(--a-green)]"><ArrowRight width={12} height={12} /> {heroEyebrow}</p></Reveal>
               <Reveal delay={0.06}>
                 <h1 className="font-playfair mt-3 text-[2.4rem] font-bold leading-[1.15] text-[var(--a-ink)] md:text-[2.75rem]">
-                  Stories, tips &amp; inspiration<br />for better <em className="font-script text-[38px] font-normal normal-case not-italic leading-none text-[var(--a-green)] underline decoration-2 decoration-[var(--a-green)]/40 underline-offset-[8px] md:text-[48px]">memories</em>
+                  {heroTitle} <em className="font-script text-[38px] font-normal normal-case not-italic leading-none text-[var(--a-green)] underline decoration-2 decoration-[var(--a-green)]/40 underline-offset-[8px] md:text-[48px]">{heroAccent}</em>
                 </h1>
               </Reveal>
-              <Reveal delay={0.12}><p className="mt-4 max-w-md text-[15px] leading-7 text-[var(--a-body)]">Real stories, practical tips and creative inspiration to help you plan your perfect shoot.</p></Reveal>
+              <Reveal delay={0.12}><p className="mt-4 max-w-md text-[15px] leading-7 text-[var(--a-body)]">{heroSubtitle}</p></Reveal>
             </div>
           </div>
         </div>
@@ -104,13 +123,13 @@ export default function AriaBlog(_props: TemplatePageProps) {
             <article className="grid grid-cols-1 overflow-hidden rounded-2xl border border-[var(--a-line)] bg-white shadow-[0_6px_28px_rgba(20,40,32,.05)] md:h-[260px] md:grid-cols-2">
               <div className="relative aspect-[16/10] md:aspect-auto">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={FEATURED.img} alt={FEATURED.title} className="absolute inset-0 h-full w-full object-cover" />
+                <img src={featured.img} alt={featured.title} className="absolute inset-0 h-full w-full object-cover" />
                 <span className="absolute left-3 top-3 rounded bg-[var(--a-green-2)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white">Featured</span>
               </div>
               <div className="flex h-full flex-col p-6">
-                <p className="mb-1 text-xs font-semibold text-[var(--a-green)]">{FEATURED.date}</p>
-                <h2 className="font-playfair mb-2 text-[1.625rem] font-bold leading-[1.2] tracking-tight text-[var(--a-ink)]">{FEATURED.title}</h2>
-                <p className="line-clamp-2 text-[13px] leading-relaxed text-[var(--a-body)] md:text-sm">{FEATURED.excerpt}</p>
+                <p className="mb-1 text-xs font-semibold text-[var(--a-green)]">{featured.date}</p>
+                <h2 className="font-playfair mb-2 text-[1.625rem] font-bold leading-[1.2] tracking-tight text-[var(--a-ink)]">{featured.title}</h2>
+                <p className="line-clamp-2 text-[13px] leading-relaxed text-[var(--a-body)] md:text-sm">{featured.excerpt}</p>
                 <div className="mt-auto flex items-center justify-between pt-4">
                   <div className="flex min-w-0 items-center gap-2 text-xs text-[var(--a-body)]">
                     <div className="flex shrink-0 -space-x-2">
@@ -121,7 +140,7 @@ export default function AriaBlog(_props: TemplatePageProps) {
                     </div>
                     <span className="truncate">By High On Innovation Team · 5 min read</span>
                   </div>
-                  <a href="/blog/how-to-choose-wedding-photography-package" className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-[var(--a-green)]">Read more <ArrowRight width={16} height={16} /></a>
+                  <a href={`/blog/${slug(featured.title)}`} className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-[var(--a-green)]">Read more <ArrowRight width={16} height={16} /></a>
                 </div>
               </div>
             </article>
@@ -129,7 +148,7 @@ export default function AriaBlog(_props: TemplatePageProps) {
 
           {/* Post grid */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {POSTS.map((p) => (
+            {shown.map((p) => (
               <Reveal key={p.title}>
                 <motion.article whileHover={{ y: -4 }} transition={{ type: "spring", stiffness: 300, damping: 22 }} className="flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--a-line)] bg-white shadow-[0_6px_28px_rgba(20,40,32,.05)]">
                   <div className="relative h-28">
@@ -142,7 +161,7 @@ export default function AriaBlog(_props: TemplatePageProps) {
                     <h3 className="font-playfair mt-1 text-[1.05rem] font-bold leading-[1.2] text-[var(--a-ink)]">{p.title}</h3>
                     <p className="mt-1.5 flex-1 text-[13px] leading-relaxed text-[var(--a-body)]">{p.excerpt}</p>
                     <div className="mt-3 flex items-center justify-between">
-                      <a href="#" className="inline-flex items-center gap-1 text-[13px] font-semibold text-[var(--a-green)]">Read more <ArrowRight width={14} height={14} /></a>
+                      <a href={`/blog/${slug(p.title)}`} className="inline-flex items-center gap-1 text-[13px] font-semibold text-[var(--a-green)]">Read more <ArrowRight width={14} height={14} /></a>
                       <span className="inline-flex items-center gap-1 text-[11px] text-[#8A8A85]"><Clock width={12} height={12} /> {p.read}</span>
                     </div>
                   </div>
@@ -164,12 +183,13 @@ export default function AriaBlog(_props: TemplatePageProps) {
         {/* Sidebar (spans 1 of 4) */}
         <aside className="flex flex-col gap-6 lg:col-span-1">
           {/* Popular Posts */}
+          {popular?.active !== false && (
           <Reveal>
             <div className="rounded-2xl border border-[var(--a-line)] bg-white p-5 shadow-[0_6px_28px_rgba(20,40,32,.05)]">
-              <div className="mb-3 flex items-center gap-2"><Sparkles width={18} height={18} className="text-[var(--a-green)]" /><h3 className="font-playfair text-lg font-bold text-[var(--a-ink)]">Popular Posts</h3></div>
+              <div className="mb-3 flex items-center gap-2"><Sparkles width={18} height={18} className="text-[var(--a-green)]" /><h3 className="font-playfair text-lg font-bold text-[var(--a-ink)]">{popular?.heading || "Popular Posts"}</h3></div>
               <div className="space-y-3.5">
-                {POPULAR.map((p) => (
-                  <a key={p.title} href="#" className="group flex items-center">
+                {popularItems.map((p, i) => (
+                  <a key={`${p.title}-${i}`} href={(p as { href?: string }).href || "#"} className="group flex items-center">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={p.img} alt={p.title} className="h-14 w-20 shrink-0 rounded-lg object-cover" />
                     <div className="flex min-w-0 flex-col justify-center pl-3">
@@ -179,42 +199,48 @@ export default function AriaBlog(_props: TemplatePageProps) {
                   </a>
                 ))}
               </div>
-              <a href="#" className="mt-4 inline-flex items-center gap-1 text-[13px] font-semibold text-[var(--a-green)]">View all posts <ArrowRight width={14} height={14} /></a>
+              <a href={popular?.viewAllHref || "#"} className="mt-4 inline-flex items-center gap-1 text-[13px] font-semibold text-[var(--a-green)]">{popular?.viewAllLabel || "View all posts"} <ArrowRight width={14} height={14} /></a>
             </div>
           </Reveal>
+          )}
 
           {/* Stay inspired */}
+          {newsActive && (
           <Reveal delay={0.06}>
             <div className="rounded-2xl border border-[var(--a-line)] p-5 pb-4" style={{ background: "#F3F5F7" }}>
               <div className="flex items-start gap-3">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--a-green-soft)] text-[var(--a-green)]"><Mail width={20} height={20} /></span>
                 <div>
-                  <h3 className="font-playfair text-lg font-bold leading-tight text-[var(--a-ink)]">Stay inspired</h3>
-                  <p className="mt-1 text-[13px] leading-relaxed text-[var(--a-body)]">Subscribe to our newsletter for the latest tips, stories and offers.</p>
+                  <h3 className="font-playfair text-lg font-bold leading-tight text-[var(--a-ink)]">{news?.title || "Stay inspired"}</h3>
+                  <p className="mt-1 text-[13px] leading-relaxed text-[var(--a-body)]">{news?.subtitle || "Subscribe to our newsletter for the latest tips, stories and offers."}</p>
                 </div>
               </div>
               <form onSubmit={(e) => { e.preventDefault(); if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setSubbed(true); setEmail(""); } }} className="mt-3 flex gap-2">
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Your email address" required className="min-w-0 flex-1 rounded-xl border border-[var(--a-line)] bg-white px-3.5 py-2.5 text-[13px] outline-none placeholder:text-slate-400 focus:border-[var(--a-green)] focus:ring-2 focus:ring-[var(--a-green)]/15" />
-                <button type="submit" className="flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl bg-[var(--a-green-2)] px-4 py-2.5 text-[13px] font-semibold text-white transition hover:bg-[var(--a-green)] active:scale-95">Subscribe <Send width={15} height={15} /></button>
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={news?.placeholder || "Your email address"} required className="min-w-0 flex-1 rounded-xl border border-[var(--a-line)] bg-white px-3.5 py-2.5 text-[13px] outline-none placeholder:text-slate-400 focus:border-[var(--a-green)] focus:ring-2 focus:ring-[var(--a-green)]/15" />
+                <button type="submit" className="flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl bg-[var(--a-green-2)] px-4 py-2.5 text-[13px] font-semibold text-white transition hover:bg-[var(--a-green)] active:scale-95">{news?.buttonLabel || "Subscribe"} <Send width={15} height={15} /></button>
               </form>
               {subbed && <p className="mt-2 text-xs font-medium text-[var(--a-green-2)]">Thanks — you&apos;re subscribed.</p>}
             </div>
           </Reveal>
+          )}
         </aside>
       </Wrap>
 
       {/* ── Suggest topic bar ── */}
+      {suggest?.active !== false && (
       <Wrap className="pb-10">
         <Reveal>
           <div className="flex flex-col items-center gap-4 rounded-2xl p-6 sm:flex-row sm:justify-between" style={{ background: TINT }}>
             <div className="flex items-center gap-4">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-[var(--a-green)]"><PenLine width={19} height={19} /></span>
-              <div><p className="font-playfair text-xl font-bold text-[var(--a-ink)]">Have a topic in mind?</p><p className="text-sm text-[var(--a-body)]">Let us know what you&apos;d like to read about next.</p></div>
+              <div><p className="font-playfair text-xl font-bold text-[var(--a-ink)]">{suggest?.title || "Have a topic in mind?"}</p><p className="text-sm text-[var(--a-body)]">{suggest?.subtitle || "Let us know what you'd like to read about next."}</p></div>
             </div>
-            <button className="inline-flex shrink-0 items-center gap-2 rounded-full border border-[var(--a-green)] px-6 py-3 text-sm font-semibold text-[var(--a-green)] transition hover:bg-[var(--a-green)] hover:text-white active:scale-95">Suggest a Topic <ArrowRight width={16} height={16} /></button>
+            <a href={suggest?.buttonHref || "/contact"} className="inline-flex shrink-0 items-center gap-2 rounded-full border border-[var(--a-green)] px-6 py-3 text-sm font-semibold text-[var(--a-green)] transition hover:bg-[var(--a-green)] hover:text-white active:scale-95">{suggest?.buttonLabel || "Suggest a Topic"} <ArrowRight width={16} height={16} /></a>
           </div>
         </Reveal>
       </Wrap>
+      )}
+      <CommonSections content={content} page="blog" />
     </main>
   );
 }

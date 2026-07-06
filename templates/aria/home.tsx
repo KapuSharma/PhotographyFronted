@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { Reveal, Stagger, StaggerItem, Tilt } from "./motion";
+import { CommonSections } from "./common";
 import type { TemplateHomeProps } from "@/templates/types";
 
 const u = (id: string, w = 900) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=80`;
@@ -62,7 +63,7 @@ const Stars = ({ n = 5 }: { n?: number }) => (
   <div className="flex gap-0.5">{Array.from({ length: 5 }).map((_, i) => <Star key={i} width={14} height={14} className={i < n ? "fill-[var(--a-gold)] text-[var(--a-gold)]" : "text-[var(--a-line)]"} />)}</div>
 );
 
-export default function AriaHome(_props: TemplateHomeProps) {
+export default function AriaHome({ content }: TemplateHomeProps) {
   return (
     <main className="aria font-inter bg-[var(--a-cream)] text-[var(--a-ink)]">
       {/* ── Hero ── */}
@@ -227,6 +228,7 @@ export default function AriaHome(_props: TemplateHomeProps) {
           </div>
         </Reveal>
       </Wrap>
+      <CommonSections content={content} page="home" />
     </main>
   );
 }

@@ -17,6 +17,20 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 
 import { Reveal, Stagger, StaggerItem, Tilt, Parallax, DrawLine, EASE } from "./motion";
+import type { SiteContent } from "@/templates/types";
+
+type WithContent = { content?: SiteContent };
+
+/* CMS icon-key → glyph map for About lists. */
+const ABOUT_ICONS: Record<string, LucideIcon> = {
+  camera: Camera, clock: Clock, shield: ShieldCheck, headphones: Headphones, calendar: Calendar,
+  users: Users, "map-pin": MapPin, mappin: MapPin, star: Star, rocket: Rocket,
+  building: Building2, trophy: Trophy, heart: Heart, lock: Lock, history: History, image: Images,
+};
+const aic = (k?: string): LucideIcon => (k && ABOUT_ICONS[k]) || Camera;
+
+/* Strip any stray HTML from a plain-text value (testimonial quotes). */
+const stripHtml = (s: string) => (s || "").replace(/<[^>]*>/g, " ").replace(/&nbsp;/gi, " ").replace(/&amp;/gi, "&").replace(/&quot;/gi, '"').replace(/&#39;/gi, "'").replace(/\s+/g, " ").trim();
 
 /* ── image helpers (placeholder Unsplash slots) ── */
 const u = (id: string, w = 1200) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=80`;
@@ -109,14 +123,14 @@ const TwIcon = ({ className }: SvgProps) => (
   <svg viewBox="0 0 24 24" className={className} fill="currentColor"><path d="M22 5.9c-.7.3-1.5.5-2.3.6.8-.5 1.4-1.3 1.7-2.2-.8.5-1.6.8-2.5 1a3.9 3.9 0 0 0-6.7 3.6A11 11 0 0 1 4 4.7a3.9 3.9 0 0 0 1.2 5.2c-.6 0-1.2-.2-1.7-.4a3.9 3.9 0 0 0 3.1 3.8c-.5.2-1.1.2-1.6.1a3.9 3.9 0 0 0 3.6 2.7A7.9 7.9 0 0 1 2 17.7 11 11 0 0 0 8 19.5c7.1 0 11-5.9 11-11v-.5c.8-.6 1.4-1.3 2-2.1z" /></svg>
 );
 const SOCIALS = [IgIcon, FbIcon, TwIcon];
-function AriaBtn({ variant, children, icon: Icon, iconBox }: { variant: "solid" | "outline" | "gold"; children: React.ReactNode; icon?: LucideIcon; iconBox?: boolean }) {
+function AriaBtn({ variant, children, icon: Icon, iconBox, href = "#" }: { variant: "solid" | "outline" | "gold"; children: React.ReactNode; icon?: LucideIcon; iconBox?: boolean; href?: string }) {
   const styles =
     variant === "solid" ? "bg-[var(--a-green-2)] text-white hover:bg-[var(--a-green)]"
     : variant === "gold" ? "bg-[var(--a-gold)] text-white hover:brightness-95"
     : "border border-[var(--a-green)]/30 bg-white text-[var(--a-green-2)] hover:bg-[var(--a-green-2)] hover:text-white";
   const boxCls = variant === "outline" ? "bg-[var(--a-green)]/10 group-hover:bg-white/20" : "bg-white/15";
   return (
-    <motion.a href="#" whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.97 }}
+    <motion.a href={href} whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.97 }}
       className={`group inline-flex items-center gap-2.5 rounded-lg px-6 py-3.5 text-sm font-semibold transition-colors ${styles}`}>
       {Icon ? (
         iconBox
@@ -132,34 +146,39 @@ const Section = ({ children, className = "" }: { children: React.ReactNode; clas
 );
 
 /* ── 1. Hero ── */
-export function AboutHero() {
+export function AboutHero({ content }: WithContent) {
+  const intro = content?.about?.intro;
+  const body = intro?.body || "Aria Studio is a boutique photography studio based in Kolkata. We specialize in weddings, pre-weddings, maternity, fashion and brand photography across India. Our goal is simple — to capture your real emotions with creativity, care and perfection.";
+  const heroImg = intro?.image || IMG.heroMain;
+  const eyebrow = intro?.eyebrow || "About Us";
+  const hTop = intro?.headlineTop || "We Capture Moments";
+  const hMain = intro?.headlineMain || "That Last";
+  const hAccent = intro?.headlineAccent || "Forever.";
+  const features = intro?.features?.length ? intro.features.map((f) => ({ Icon: aic(f.icon), label: f.label })) : HERO_FEATURES.map((f) => ({ Icon: f.icon, label: f.label }));
+  const thumbs = intro?.thumbs?.length ? intro.thumbs : IMG.heroThumbs;
   return (
     <section className="relative overflow-hidden bg-[var(--a-cream)]">
       <Section className="grid items-center gap-10 py-10 md:grid-cols-2 md:gap-12 md:py-14 lg:gap-16 xl:gap-20">
         <div>
-          <Reveal><Eyebrow>About Us</Eyebrow></Reveal>
+          <Reveal><Eyebrow>{eyebrow}</Eyebrow></Reveal>
           <Reveal delay={0.06}>
             <h1 className="font-playfair mt-5 text-[clamp(2.4rem,4.8vw,3.7rem)] font-bold leading-[1.08] text-[var(--a-ink)]">
-              We Capture Moments <br className="hidden md:block" />That Last <span className="italic text-[var(--a-gold)]">Forever.</span>
+              {hTop} <br className="hidden md:block" />{hMain} <span className="italic text-[var(--a-gold)]">{hAccent}</span>
             </h1>
           </Reveal>
           <Reveal delay={0.14}>
-            <p className="mt-6 max-w-lg text-[15px] leading-7 text-[var(--a-body)]">
-              Aria Studio is a boutique photography studio based in Kolkata. We specialize in weddings,
-              pre-weddings, maternity, fashion and brand photography across India. Our goal is simple — to
-              capture your real emotions with creativity, care and perfection.
-            </p>
+            <p className="mt-6 max-w-lg text-[15px] leading-7 text-[var(--a-body)]">{body}</p>
           </Reveal>
           <Reveal delay={0.2}>
             <div className="mt-8 flex flex-wrap gap-4">
-              <AriaBtn variant="solid" icon={Images} iconBox>View Portfolio</AriaBtn>
-              <AriaBtn variant="outline" icon={Send} iconBox>Contact Us</AriaBtn>
+              <AriaBtn variant="solid" icon={Images} iconBox href={intro?.primaryHref || "/gallery"}>{intro?.primaryLabel || "View Portfolio"}</AriaBtn>
+              <AriaBtn variant="outline" icon={Send} iconBox href={intro?.secondaryHref || "/contact"}>{intro?.secondaryLabel || "Contact Us"}</AriaBtn>
             </div>
           </Reveal>
           <Stagger className="mt-12 grid grid-cols-2 gap-y-7 sm:grid-cols-4 sm:divide-x sm:divide-[var(--a-line)]">
-            {HERO_FEATURES.map((f) => (
+            {features.map((f) => (
               <StaggerItem key={f.label} className="flex flex-col items-center gap-2.5 px-4 text-center">
-                <f.icon width={26} height={26} strokeWidth={1.6} className="text-[var(--a-gold)]" />
+                <f.Icon width={26} height={26} strokeWidth={1.6} className="text-[var(--a-gold)]" />
                 <span className="text-[11px] font-semibold leading-tight text-[var(--a-body)]">{f.label}</span>
               </StaggerItem>
             ))}
@@ -176,10 +195,10 @@ export function AboutHero() {
                 <div className="relative">
                   <div className="overflow-hidden rounded-2xl shadow-2xl ring-1 ring-black/5">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={IMG.heroMain} alt="Our team capturing a moment" className="h-[300px] w-full object-cover sm:h-[430px] lg:h-[500px] xl:h-[540px]" />
+                    <img src={heroImg} alt="Our team capturing a moment" className="h-[300px] w-full object-cover sm:h-[430px] lg:h-[500px] xl:h-[540px]" />
                   </div>
                   <div className="absolute inset-x-3 -bottom-7 z-10 grid grid-cols-3 gap-3">
-                    {IMG.heroThumbs.map((src, i) => (
+                    {thumbs.map((src, i) => (
                       <div key={i} className="overflow-hidden rounded-xl shadow-xl ring-[3px] ring-white">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={src} alt="" className="h-[88px] w-full object-cover sm:h-[112px] lg:h-[128px]" />
@@ -197,12 +216,15 @@ export function AboutHero() {
 }
 
 /* ── 2. Stats bar ── */
-export function StatsBar() {
+export function StatsBar({ content }: WithContent) {
+  const items = content?.about?.stats?.items?.length
+    ? content.about.stats.items.map((it, i) => ({ icon: STATS[i % STATS.length].icon, value: it.value, label: it.label }))
+    : STATS;
   return (
     <Section className="py-6">
       <Reveal>
         <div className="grid grid-cols-2 gap-y-6 rounded-2xl border border-[var(--a-line)] bg-white p-6 shadow-[0_10px_40px_-20px_rgba(14,90,68,0.25)] sm:grid-cols-3 md:grid-cols-5 md:divide-x md:divide-[var(--a-line)] md:p-7">
-          {STATS.map((s) => (
+          {items.map((s) => (
             <div key={s.label} className="flex items-center gap-3 px-2 md:justify-center md:px-4">
               <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[var(--a-green-soft)] text-[var(--a-green)]"><s.icon width={19} height={19} /></span>
               <div>
@@ -218,19 +240,24 @@ export function StatsBar() {
 }
 
 /* ── 3. Our Journey ── */
-export function Journey() {
+export function Journey({ content }: WithContent) {
+  const j = content?.about?.journey;
+  const eyebrow = j?.eyebrow || "Our Journey";
+  const title = j?.title || "From Passion to Purpose";
+  const items = j?.items?.length ? j.items.map((it) => ({ year: it.year, Icon: aic(it.icon), text: it.text })) : JOURNEY.map((it) => ({ year: it.year, Icon: it.icon, text: it.text }));
   return (
     <Section className="py-10 md:py-12">
-      <SectionHead eyebrow="Our Journey" title="From Passion to Purpose" />
+      <SectionHead eyebrow={eyebrow} title={title} />
       <div className="relative mt-16">
         <DrawLine className="absolute left-[10%] right-[10%] top-8 hidden border-[var(--a-gold)]/40 md:block" />
         <Stagger className="grid gap-10 md:grid-cols-5">
-          {JOURNEY.map((t, i) => {
+          {items.map((t, i) => {
             const gold = i % 2 === 0;
+            const Icon = t.Icon;
             return (
-              <StaggerItem key={t.year} className="relative text-center">
+              <StaggerItem key={`${t.year}-${i}`} className="relative text-center">
                 <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full ring-8 ring-[var(--a-cream)] ${gold ? "bg-[#f4ecdc] text-[var(--a-gold)]" : "bg-[var(--a-green-soft)] text-[var(--a-green)]"}`}>
-                  <t.icon width={24} height={24} />
+                  <Icon width={24} height={24} />
                 </div>
                 <div className="mt-4 font-playfair text-lg font-bold text-[var(--a-ink)]">{t.year}</div>
                 <p className="mx-auto mt-1.5 max-w-[180px] text-sm leading-6 text-[var(--a-body)]">{t.text}</p>
@@ -244,13 +271,17 @@ export function Journey() {
 }
 
 /* ── 4. Meet the Team ── */
-export function Team() {
+export function Team({ content }: WithContent) {
+  const t = content?.about?.team;
+  const eyebrow = t?.eyebrow || "Meet the Team";
+  const title = t?.title || "The People Behind the Lens";
+  const members = t?.members?.length ? t.members : TEAM;
   return (
     <Section className="py-10 md:py-12">
-      <SectionHead eyebrow="Meet the Team" title="The People Behind the Lens" />
+      <SectionHead eyebrow={eyebrow} title={title} />
       <Stagger className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {TEAM.map((m) => (
-          <StaggerItem key={m.name}>
+        {members.map((m, mi) => (
+          <StaggerItem key={`${m.name}-${mi}`}>
             <div className="aria-perspective">
               <Tilt intensity={8} className="aria-preserve-3d">
                 <div className="overflow-hidden rounded-2xl border border-[var(--a-line)] bg-white shadow-sm">
@@ -280,12 +311,16 @@ export function Team() {
 }
 
 /* ── 5. Behind the Scenes ── */
-export function BehindScenes() {
+export function BehindScenes({ content }: WithContent) {
+  const b = content?.about?.behindScenes;
+  const eyebrow = b?.eyebrow || "Behind the Scenes";
+  const title = b?.title || "Where Magic Happens";
+  const images = b?.images?.length ? b.images : IMG.bts;
   return (
     <Section className="py-10 md:py-12">
-      <SectionHead eyebrow="Behind the Scenes" title="Where Magic Happens" />
+      <SectionHead eyebrow={eyebrow} title={title} />
       <Stagger className="mt-14 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
-        {IMG.bts.map((src, i) => (
+        {images.map((src, i) => (
           <StaggerItem key={i}>
             <div className="aspect-[16/11] overflow-hidden rounded-2xl shadow-sm">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -299,17 +334,21 @@ export function BehindScenes() {
 }
 
 /* ── 6. Why Choose Us ── */
-export function WhyUs() {
+export function WhyUs({ content }: WithContent) {
+  const w0 = content?.about?.whyUs;
+  const eyebrow = w0?.eyebrow || "Why Clients Choose Us";
+  const title = w0?.title || "The Aria Difference";
+  const items = w0?.items?.length ? w0.items.map((it) => ({ Icon: aic(it.icon), tint: "text-[var(--a-ink)]", title: it.title, text: it.text })) : WHY.map((it) => ({ Icon: it.icon, tint: it.tint, title: it.title, text: it.text }));
   return (
     <Section className="py-10 md:py-12">
-      <SectionHead eyebrow="Why Clients Choose Us" title="The Aria Difference" />
+      <SectionHead eyebrow={eyebrow} title={title} />
       <Stagger className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
-        {WHY.map((w) => (
-          <StaggerItem key={w.title}>
+        {items.map((w, wi) => (
+          <StaggerItem key={`${w.title}-${wi}`}>
             <motion.div whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 300, damping: 20 }}
               className="h-full rounded-2xl border border-[var(--a-line)] bg-white p-6 text-center shadow-sm">
               <span className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[var(--a-green-soft)] ${w.tint}`}>
-                <w.icon width={22} height={22} strokeWidth={1.6} />
+                <w.Icon width={22} height={22} strokeWidth={1.6} />
               </span>
               <h4 className="mt-4 text-sm font-bold text-[var(--a-ink)]">{w.title}</h4>
               <p className="mt-2 text-xs leading-5 text-[var(--a-body)]">{w.text}</p>
@@ -322,18 +361,28 @@ export function WhyUs() {
 }
 
 /* ── 7. Testimonials (carousel) ── */
-export function Testimonials() {
+export function Testimonials({ content }: WithContent) {
+  const list = content?.testimonials?.length
+    ? content.testimonials.map((t, i) => ({
+        name: t.client || "Client",
+        role: t.city || "",
+        quote: stripHtml(t.text || ""),
+        rating: typeof t.rating === "number" ? t.rating : 5,
+        avatar: t.avatar || TESTIMONIALS[i % TESTIMONIALS.length].avatar,
+      }))
+    : TESTIMONIALS;
   const perPage = 3;
-  const pages = Array.from({ length: Math.ceil(TESTIMONIALS.length / perPage) }, (_, i) => TESTIMONIALS.slice(i * perPage, i * perPage + perPage));
+  const pages = Array.from({ length: Math.ceil(list.length / perPage) }, (_, i) => list.slice(i * perPage, i * perPage + perPage));
   const [page, setPage] = useState(0);
   useEffect(() => {
     const t = setInterval(() => setPage((p) => (p + 1) % pages.length), 5500);
     return () => clearInterval(t);
   }, [pages.length]);
 
+  const tHead = content?.about?.testimonials;
   return (
     <Section className="py-10 md:py-12">
-      <SectionHead eyebrow="Client Love" title="What Our Clients Say" />
+      <SectionHead eyebrow={tHead?.eyebrow || "Client Love"} title={tHead?.title || "What Our Clients Say"} />
 
       <div className="relative mt-14">
         <div className="overflow-hidden">
@@ -375,25 +424,26 @@ export function Testimonials() {
 }
 
 /* ── 8. CTA footer ── */
-export function CtaFooter() {
+export function CtaFooter({ content }: WithContent) {
+  const c = content?.about?.cta;
   return (
     <Section className="pb-10 pt-2">
       <Reveal>
         <div className="relative overflow-hidden rounded-3xl bg-[var(--a-green-2)] px-6 py-11 md:px-12">
           <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-1/2 md:block">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={IMG.ctaBg} alt="" className="h-full w-full object-cover opacity-25" />
+            <img src={c?.bgImage || IMG.ctaBg} alt="" className="h-full w-full object-cover opacity-25" />
             <div className="absolute inset-0" style={{ background: "linear-gradient(90deg, var(--a-green-2), var(--a-green-2) 45%, transparent)" }} />
           </div>
           <div className="relative max-w-xl">
-            <h3 className="font-playfair text-2xl font-bold text-white md:text-[2.1rem]">Let&apos;s Create Beautiful Memories Together</h3>
-            <p className="mt-3 text-sm leading-6 text-white/70">Have a project in mind? Let&apos;s talk about how we can bring your vision to life.</p>
+            <h3 className="font-playfair text-2xl font-bold text-white md:text-[2.1rem]">{c?.heading || "Let's Create Beautiful Memories Together"}</h3>
+            <p className="mt-3 text-sm leading-6 text-white/70">{c?.subtitle || "Have a project in mind? Let's talk about how we can bring your vision to life."}</p>
             <div className="mt-7 flex flex-wrap gap-4">
-              <AriaBtn variant="gold" icon={Calendar} iconBox>Book a Consultation</AriaBtn>
-              <motion.a href="#" whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.97 }}
+              <AriaBtn variant="gold" icon={Calendar} iconBox href={c?.primaryHref || "/contact"}>{c?.primaryLabel || "Book a Consultation"}</AriaBtn>
+              <motion.a href={c?.secondaryHref || "/contact"} whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.97 }}
                 className="inline-flex items-center gap-2.5 rounded-lg border border-white/40 bg-white/10 px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-white/20">
                 <span className="flex h-6 w-6 items-center justify-center rounded-md bg-white/15"><MessageCircle width={14} height={14} /></span>
-                Chat with AI Assistant
+                {c?.secondaryLabel || "Chat with AI Assistant"}
               </motion.a>
             </div>
           </div>
