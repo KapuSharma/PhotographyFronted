@@ -165,8 +165,8 @@ export default function AriaReviews({ content }: TemplatePageProps) {
       {/* ── Review cards ── */}
       <Wrap className="mt-6">
         <motion.div layout className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {shown.map((r) => (
-            <motion.div key={r.name} whileHover={{ y: -4 }} transition={{ type: "spring", stiffness: 300, damping: 22 }}
+          {shown.map((r, i) => (
+            <motion.div key={i} whileHover={{ y: -4 }} transition={{ type: "spring", stiffness: 300, damping: 22 }}
               className="relative flex flex-col rounded-2xl border border-[var(--a-line)] bg-white p-6 shadow-sm">
               <Quote width={30} height={30} className="absolute right-5 top-5 text-[var(--a-green-faint)]" fill="currentColor" />
               <Stars />

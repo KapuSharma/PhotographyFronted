@@ -112,8 +112,8 @@ export function StoriesSection({ content }: WithContent) {
         <ViewAll tone="gold" href={d?.viewAllHref || "/reviews"}>{d?.viewAllLabel || "View all reviews"}</ViewAll>
       </Reveal>
       <Stagger className="grid gap-4 sm:grid-cols-3">
-        {items.map((s) => (
-          <StaggerItem key={s.name}>
+        {items.map((s, i) => (
+          <StaggerItem key={i}>
             <div className="flex h-full flex-col rounded-2xl bg-white p-5 shadow-sm">
               <Quote width={26} height={26} className="text-[var(--a-gold)]" />
               <p className="mt-2 flex-1 text-[13px] leading-6 text-[var(--a-body)]">{s.text}</p>
@@ -178,8 +178,8 @@ export function ServicesSection({ content }: WithContent) {
         <ViewAll href={d?.viewAllHref || "/services"}>{d?.viewAllLabel || "View all services"}</ViewAll>
       </Reveal>
       <Stagger className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        {items.map((s) => (
-          <StaggerItem key={s.name}>
+        {items.map((s, i) => (
+          <StaggerItem key={i}>
             <div className="h-full rounded-2xl bg-white p-4 text-center shadow-sm transition hover:-translate-y-1">
               <s.Icon width={26} height={26} strokeWidth={1.5} className="mx-auto text-[var(--a-green)]" />
               <h4 className="mt-3 text-xs font-bold leading-tight text-[var(--a-ink)]">{s.name}</h4>

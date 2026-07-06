@@ -110,11 +110,13 @@ const ShareBtn = ({ children, bg }: { children: React.ReactNode; bg: string }) =
   <a href="#" className="flex h-8 w-8 items-center justify-center rounded-full text-white transition hover:opacity-90" style={{ background: bg }}>{children}</a>
 );
 
+const stripHtml = (s: string) => (s || "").replace(/<[^>]*>/g, " ").replace(/&nbsp;/gi, " ").replace(/&amp;/gi, "&").replace(/&quot;/gi, '"').replace(/&#39;/gi, "'").replace(/\s+/g, " ").trim();
+
 type BlogPostProps = { post?: SiteContent["blog"][number]; cfg?: SiteContent["blogPostPage"] };
 export default function AriaBlogPost({ post, cfg }: BlogPostProps) {
   const category = post?.category || "Wedding";
   const heading = post?.title;
-  const excerpt = post?.excerpt || "A simple guide to coverage hours, deliverables, and what actually matters on your big day.";
+  const excerpt = stripHtml(post?.excerpt || "") || "A simple guide to coverage hours, deliverables, and what actually matters on your big day.";
   const date = post?.date || "18 Jun 2026";
   const image = post?.image || u("1519741497674-611481863552", 1000);
   const body = post?.body || [];

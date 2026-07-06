@@ -148,7 +148,7 @@ const Section = ({ children, className = "" }: { children: React.ReactNode; clas
 /* ── 1. Hero ── */
 export function AboutHero({ content }: WithContent) {
   const intro = content?.about?.intro;
-  const body = intro?.body || "Aria Studio is a boutique photography studio based in Kolkata. We specialize in weddings, pre-weddings, maternity, fashion and brand photography across India. Our goal is simple — to capture your real emotions with creativity, care and perfection.";
+  const body = stripHtml(intro?.body || "") || "Aria Studio is a boutique photography studio based in Kolkata. We specialize in weddings, pre-weddings, maternity, fashion and brand photography across India. Our goal is simple — to capture your real emotions with creativity, care and perfection.";
   const heroImg = intro?.image || IMG.heroMain;
   const eyebrow = intro?.eyebrow || "About Us";
   const hTop = intro?.headlineTop || "We Capture Moments";
@@ -391,8 +391,8 @@ export function Testimonials({ content }: WithContent) {
               initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }}
               transition={{ duration: 0.5, ease: EASE }}
               className="grid gap-5 md:grid-cols-3">
-              {pages[page].map((t) => (
-                <div key={t.name} className="flex h-full flex-col rounded-2xl border border-[var(--a-line)] bg-white p-6 shadow-sm">
+              {pages[page].map((t, i) => (
+                <div key={i} className="flex h-full flex-col rounded-2xl border border-[var(--a-line)] bg-white p-6 shadow-sm">
                   <div className="flex justify-center gap-0.5 text-[var(--a-gold)]">
                     {Array.from({ length: t.rating }).map((_, i) => <Star key={i} width={16} height={16} className="fill-current" />)}
                   </div>
