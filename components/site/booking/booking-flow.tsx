@@ -1,10 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Check, CheckCircle2, ChevronLeft, ChevronRight, Clock, CreditCard, X } from "lucide-react";
+import { Check, CheckCircle2, ChevronLeft, ChevronRight, Clock, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { formatINR, parseINR } from "@/lib/currency";
+import { parseINR } from "@/lib/currency";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -48,7 +48,25 @@ export function BookingFlow({ services, packages, domain }: { services: Svc[]; p
 
   const currentPkg = packages.find((p) => p.id === pkgId) || packages[0];
   const pkgPrice = currentPkg?.price || "";
-  const advance = pkgPrice ? formatINR(Math.round(parseINR(pkgPrice) * 0.2)) : "—";
+
+  // ----- field validation (step 3) -----
+  const nameOk = form.name.trim().length >= 2;
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim());
+  const phoneDigits = form.phone.replace(/\D/g, "");
+  const phoneOk = phoneDigits.length >= 7 && phoneDigits.length <= 15;
+  const detailsValid = nameOk && emailOk && phoneOk;
+
+  // Reset the whole flow after a confirmed request so the confirm step can't be
+  // re-submitted and the user starts fresh.
+  function reset() {
+    setDone(false);
+    setStep(0);
+    setServiceName("");
+    setDateStr("");
+    setSlot("");
+    setForm({ name: "", email: "", phone: "", message: "" });
+    setError("");
+  }
 
   // ----- calendar maths -----
   const startOffset = new Date(view.y, view.m, 1).getDay();
@@ -94,11 +112,11 @@ export function BookingFlow({ services, packages, domain }: { services: Svc[]; p
   }
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-10 md:px-6">
+    <main className="mx-auto w-full max-w-7xl px-4 py-10 md:px-8 lg:px-12">
       <SectionTitle
         eyebrow="Booking"
         title="Book without the back-and-forth"
-        desc="Service first, then package, date, details — then pay an advance or request a soft hold."
+        desc="Service first, then package, date, details — then request a soft hold and the studio confirms."
       />
 
       {/* Stepper */}
@@ -127,6 +145,16 @@ export function BookingFlow({ services, packages, domain }: { services: Svc[]; p
       <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
         <Card>
           <div className="min-h-[420px] p-6">
+            {/* Back — available on every step after the first */}
+            {step > 0 && !done ? (
+              <button
+                onClick={() => setStep(step - 1)}
+                className="mb-4 inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground"
+              >
+                <ChevronLeft width={16} height={16} /> Back
+              </button>
+            ) : null}
+
             {/* Step 0 — Service */}
             {step === 0 ? (
               <>
@@ -141,18 +169,18 @@ export function BookingFlow({ services, packages, domain }: { services: Svc[]; p
                         key={s.id}
                         onClick={() => { setServiceName(s.name); setStep(1); }}
                         className={cn(
-                          "overflow-hidden rounded-2xl border text-left transition hover:shadow-md",
-                          serviceName === s.name ? "border-brand-400 ring-2 ring-brand-100" : "border-border"
+                          "group overflow-hidden rounded-2xl border text-left transition duration-300 hover:-translate-y-0.5 hover:shadow-lg",
+                          serviceName === s.name ? "border-brand-400 ring-2 ring-brand-100" : "border-border hover:border-brand-300"
                         )}
                       >
                         <div className="h-32 overflow-hidden bg-muted">
                           {s.photo?.src ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={s.photo.src} alt={s.name} className="h-full w-full object-cover" />
+                            <img src={s.photo.src} alt={s.name} className="h-full w-full object-cover transition duration-500 ease-out group-hover:scale-110" />
                           ) : null}
                         </div>
                         <div className="p-3">
-                          <p className="font-bold text-foreground">{s.name}</p>
+                          <p className="font-bold text-foreground transition group-hover:text-brand-600">{s.name}</p>
                           {s.from ? <p className="text-sm text-brand-600">from {s.from}</p> : null}
                         </div>
                       </button>
@@ -259,8 +287,8 @@ export function BookingFlow({ services, packages, domain }: { services: Svc[]; p
                           key={s}
                           onClick={() => setSlot(s)}
                           className={cn(
-                            "w-full rounded-xl border px-4 py-2.5 text-left text-sm font-semibold transition",
-                            slot === s ? "border-brand-400 bg-brand-50 text-brand-700" : "border-border text-muted-foreground hover:bg-muted"
+                            "w-full whitespace-nowrap rounded-xl border px-4 py-2.5 text-left text-sm font-semibold transition",
+                            slot === s ? "border-brand-400 bg-brand-50 text-brand-700" : "border-border text-muted-foreground hover:border-brand-300 hover:bg-muted"
                           )}
                         >
                           {s}
@@ -292,20 +320,31 @@ export function BookingFlow({ services, packages, domain }: { services: Svc[]; p
                     <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Email *</span>
                     <input
                       type="email"
+                      inputMode="email"
                       value={form.email}
                       onChange={(e) => setForm({ ...form, email: e.target.value })}
                       placeholder="you@email.com"
-                      className="mt-1.5 w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+                      className={cn(
+                        "mt-1.5 w-full rounded-xl border bg-card px-3.5 py-2.5 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:ring-2",
+                        form.email && !emailOk ? "border-red-300 focus:border-red-400 focus:ring-red-100" : "border-border focus:border-brand-400 focus:ring-brand-100"
+                      )}
                     />
+                    {form.email && !emailOk ? <span className="mt-1 block text-xs font-medium text-red-600">Enter a valid email address.</span> : null}
                   </label>
                   <label className="block">
-                    <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Phone</span>
+                    <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Phone *</span>
                     <input
+                      type="tel"
+                      inputMode="numeric"
                       value={form.phone}
-                      onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                      placeholder="+91 …"
-                      className="mt-1.5 w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+                      onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/[^\d+\s-]/g, "") })}
+                      placeholder="+91 98300 00000"
+                      className={cn(
+                        "mt-1.5 w-full rounded-xl border bg-card px-3.5 py-2.5 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:ring-2",
+                        form.phone && !phoneOk ? "border-red-300 focus:border-red-400 focus:ring-red-100" : "border-border focus:border-brand-400 focus:ring-brand-100"
+                      )}
                     />
+                    {form.phone && !phoneOk ? <span className="mt-1 block text-xs font-medium text-red-600">Enter a valid phone number (7–15 digits).</span> : null}
                   </label>
                   <label className="block sm:col-span-2">
                     <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Anything we should know?</span>
@@ -320,7 +359,7 @@ export function BookingFlow({ services, packages, domain }: { services: Svc[]; p
                 </div>
                 <div className="mt-5 flex gap-3">
                   <Button variant="ghost" onClick={() => setStep(2)}>Back</Button>
-                  <Button disabled={!form.name.trim() || !form.email.trim()} onClick={() => setStep(4)}>Continue</Button>
+                  <Button disabled={!detailsValid} onClick={() => setStep(4)}>Continue</Button>
                 </div>
               </>
             ) : null}
@@ -337,7 +376,6 @@ export function BookingFlow({ services, packages, domain }: { services: Svc[]; p
                     ["Time", slot || "—"],
                     ["Name", form.name],
                     ["Estimated value", pkgPrice || "—"],
-                    ["Advance (20%)", advance],
                   ] as [string, string][]).map(([k, v]) => (
                     <div key={k} className="flex justify-between px-4 py-3 text-sm">
                       <span className="text-muted-foreground">{k}</span>
@@ -345,18 +383,14 @@ export function BookingFlow({ services, packages, domain }: { services: Svc[]; p
                     </div>
                   ))}
                 </div>
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  <Button disabled={submitting} onClick={submit}>
-                    <CreditCard width={16} height={16} />
-                    {submitting ? "Processing…" : "Pay advance"}
-                  </Button>
-                  <Button variant="ghost" disabled={submitting} onClick={submit}>
+                <div className="mt-4">
+                  <Button className="w-full" disabled={submitting} onClick={submit}>
                     <Clock width={16} height={16} />
-                    24h soft hold
+                    {submitting ? "Processing…" : "Request 24h soft hold"}
                   </Button>
                 </div>
                 <p className="mt-3 text-xs text-muted-foreground">
-                  Online advance payment is coming soon — for now this sends your request and the studio confirms within 24 hours.
+                  This places a 24-hour soft hold on your slot and sends your request — the studio confirms within 24 hours. No payment required now.
                 </p>
               </>
             ) : null}
@@ -389,12 +423,12 @@ export function BookingFlow({ services, packages, domain }: { services: Svc[]; p
       {done ? (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
-          onClick={() => setDone(false)}
+          onClick={reset}
           role="dialog"
           aria-modal="true"
         >
           <div className="relative w-full max-w-sm rounded-3xl bg-neutral-950 p-8 text-center text-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => setDone(false)} aria-label="Close" className="absolute right-4 top-4 text-white/50 transition hover:text-white">
+            <button onClick={reset} aria-label="Close" className="absolute right-4 top-4 text-white/50 transition hover:text-white">
               <X width={20} height={20} />
             </button>
             <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/15">
@@ -406,7 +440,7 @@ export function BookingFlow({ services, packages, domain }: { services: Svc[]; p
               <span className="font-semibold text-white">{prettyDate(dateStr)} · {slot}</span>{" "}
               is in. We&apos;ve received it and the studio will confirm within 24 hours — see you at the shoot!
             </p>
-            <button onClick={() => setDone(false)} className="mt-6 w-full rounded-xl bg-white py-3 text-sm font-bold text-neutral-950 transition hover:bg-white/90">
+            <button onClick={reset} className="mt-6 w-full rounded-xl bg-white py-3 text-sm font-bold text-neutral-950 transition hover:bg-white/90">
               Done
             </button>
           </div>

@@ -148,10 +148,10 @@ export default function AriaContact({ content }: TemplatePageProps) {
             <h2 className="font-playfair text-[1.375rem] font-bold text-[var(--a-ink)]">{detailsHeading}</h2>
             <span className="mt-2 block h-0.5 w-10 rounded bg-[var(--a-green)]" />
             <ul className="mt-6 flex flex-1 flex-col justify-center gap-5">
-              {contactRows.map((c) => {
+              {contactRows.map((c, i) => {
                 const Icon = c.icon;
                 return (
-                  <li key={c.label} className="flex items-center gap-4">
+                  <li key={i} className="flex items-center gap-4">
                     <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[var(--a-green-soft)] text-[var(--a-green)]"><Icon width={21} height={21} /></span>
                     <div><div className="text-base font-bold text-[var(--a-ink)]">{c.label}</div><div className="mt-0.5 text-sm text-[var(--a-body)]">{c.sub}</div></div>
                   </li>
@@ -173,10 +173,10 @@ export default function AriaContact({ content }: TemplatePageProps) {
             <div>
               <h3 className="text-base font-bold text-[var(--a-ink)]">Why reach out to us?</h3>
               <div className="mt-6 grid grid-cols-2 gap-6 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
-                {whyItems.map((w) => {
+                {whyItems.map((w, i) => {
                   const Icon = w.icon;
                   return (
-                    <div key={w.title} className="text-center">
+                    <div key={i} className="text-center">
                       <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[var(--a-green-soft)] text-[var(--a-green)]"><Icon width={20} height={20} /></span>
                       <div className="mt-3 text-sm font-bold text-[var(--a-ink)]">{w.title}</div>
                       <p className="mt-1 text-xs text-[var(--a-body)]">{w.sub}</p>

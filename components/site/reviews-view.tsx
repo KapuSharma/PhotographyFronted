@@ -5,6 +5,7 @@ import { Quote, Grid3x3 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
 import { cn } from "@/lib/utils";
+import { initials } from "@/lib/initials";
 import { Stars } from "@/components/site/stars";
 import { TiltCard } from "@/components/site/anim";
 
@@ -52,7 +53,7 @@ export function ReviewsView({ reviews }: { reviews: ReviewItem[] }) {
                   </div>
                   <p className="mt-3 flex-1 text-[15px] leading-7 text-foreground/80">“{r.text}”</p>
                   <div className="mt-5 flex items-center gap-3 border-t border-border pt-4">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white">{r.client.slice(0, 1)}</span>
+                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white">{initials(r.client)}</span>
                     <div className="min-w-0">
                       <div className="text-sm font-bold text-foreground">{r.client}</div>
                       <div className="text-xs text-muted-foreground">{r.service} Photography · {r.city}</div>

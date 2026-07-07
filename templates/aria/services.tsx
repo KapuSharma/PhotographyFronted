@@ -86,6 +86,7 @@ const Stars = ({ n = 5 }: { n?: number }) => (
 
 export default function AriaServices({ content }: TemplatePageProps) {
   const sp = content?.servicesPage;
+  const heroActive = sp?.hero.active !== false;
   const heroTitle = sp?.hero.title || "Our Services";
   const heroTagline = sp?.hero.tagline || "Capturing Moments. Creating Stories.";
   const heroSubtitle = sp?.hero.subtitle || "Explore our photography services crafted to preserve your most precious moments with artistry and passion.";
@@ -100,7 +101,7 @@ export default function AriaServices({ content }: TemplatePageProps) {
         return {
           name: s.name, cat: s.category || "", rating: s.rating || "4.9", reviews: s.reviews || "",
           price: s.from || "", features: s.features?.length ? s.features : (s.desc ? [s.desc] : []),
-          icon: catIc(s.category), img: s.photo?.src || imgs[0] || "", thumbs: imgs.slice(0, 3),
+          icon: catIc(s.category), img: s.photo?.src || imgs[0] || u("1519741497674-611481863552", 800), thumbs: imgs.slice(0, 3),
           color: pal.color, priceCls: pal.priceCls, btnCls: pal.btnCls, iconCls: "",
         };
       })
@@ -144,14 +145,15 @@ export default function AriaServices({ content }: TemplatePageProps) {
       {/* ── Hero ── */}
       <Wrap className="grid items-center gap-8 py-6 lg:grid-cols-[0.85fr_1.4fr] md:py-7">
         {/* Left */}
+        {heroActive ? (
         <div>
           <Reveal><h1 className="font-playfair text-[clamp(2.625rem,4.6vw,2.875rem)] font-bold text-[var(--a-ink)]">{heroTitle}</h1></Reveal>
           <Reveal delay={0.06}><p className="mt-1 text-lg font-bold text-[var(--a-green)]">{heroTagline}</p></Reveal>
           <Reveal delay={0.12}><p className="mt-4 max-w-sm text-[15px] leading-7 text-[var(--a-body)]">{heroSubtitle}</p></Reveal>
           <Reveal delay={0.16}>
             <div className="mt-7 grid grid-cols-4 gap-x-1 gap-y-3">
-              {heroStats.map((s) => (
-                <div key={s.label} className="flex items-center gap-1.5">
+              {heroStats.map((s, i) => (
+                <div key={i} className="flex items-center gap-1.5">
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--a-green-soft)] text-[var(--a-green)]"><s.Icon width={16} height={16} /></span>
                   <div className="leading-tight"><div className="text-sm font-extrabold text-[var(--a-ink)]">{s.value}</div><div className="whitespace-nowrap text-[10px] text-[var(--a-body)]">{s.label}</div></div>
                 </div>
@@ -159,6 +161,7 @@ export default function AriaServices({ content }: TemplatePageProps) {
             </div>
           </Reveal>
         </div>
+        ) : <div />}
 
         {/* Featured card */}
         {featuredActive && featured && (
@@ -204,7 +207,7 @@ export default function AriaServices({ content }: TemplatePageProps) {
             {shown.map((s, idx) => {
               const Icon = s.icon;
               return (
-                <motion.article key={s.name} whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 300, damping: 22 }}
+                <motion.article key={idx} whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 300, damping: 22 }}
                   className="flex flex-col overflow-hidden rounded-2xl border border-[var(--a-line)] bg-white shadow-sm">
                   {/* Image + badges + thumbs */}
                   <div className="relative">

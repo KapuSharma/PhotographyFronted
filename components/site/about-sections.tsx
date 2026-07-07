@@ -9,6 +9,7 @@ import { SectionHeading, Section } from "@/components/site/kit";
 import { AskAiButton } from "@/components/site/ask-ai-button";
 import { Stars } from "@/components/site/stars";
 import { stripHtml } from "@/lib/utils";
+import { initials } from "@/lib/initials";
 import type { Testimonial } from "@/lib/data";
 
 /* =====================================================================
@@ -276,7 +277,7 @@ export function ClientLove({ testimonials }: { testimonials: Testimonial[] }) {
               <Stars n={t.rating} className="justify-center" />
               <p className="mt-4 text-center text-[14px] leading-7 text-foreground/80">“{stripHtml(t.text)}”</p>
               <div className="mt-5 flex items-center gap-3">
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-700 text-sm font-bold text-white">{t.client.slice(0, 1)}</span>
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-700 text-sm font-bold text-white">{initials(t.client)}</span>
                 <div>
                   <div className="text-sm font-bold text-foreground">{t.client}</div>
                   <div className="text-xs text-muted-foreground">{t.city}</div>

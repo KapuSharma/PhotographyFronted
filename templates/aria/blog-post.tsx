@@ -44,6 +44,7 @@ function Block({ b }: { b: ArticleBlock }) {
       return <div className="mt-4 flex items-start gap-2 rounded-xl bg-[var(--a-green-soft)]/70 p-3.5 text-sm text-[var(--a-ink)]"><Icon width={16} height={16} className={`mt-0.5 shrink-0 ${color}`} /><span>{b.text}</span></div>;
     }
     case "image":
+      if (!b.url) return null;
       return (
         <Reveal>
           <div className="mt-4 overflow-hidden rounded-2xl">
@@ -206,10 +207,10 @@ export default function AriaBlogPost({ post, cfg }: BlogPostProps) {
               <h2 className="font-playfair text-xl font-bold text-[var(--a-ink)]">2. Check What&apos;s Included in the Deliverables</h2>
               <p className="mt-2 text-[13px] leading-6 text-[var(--a-body)]">Not all packages are the same. Make sure you know exactly what you&apos;ll receive.</p>
               <div className="mt-4 grid max-w-[820px] gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
-                {DELIVERABLES.map((d) => {
+                {DELIVERABLES.map((d, i) => {
                   const Icon = d.icon;
                   return (
-                    <div key={d.title} className="rounded-xl border border-[var(--a-line)] bg-white p-4">
+                    <div key={i} className="rounded-xl border border-[var(--a-line)] bg-white p-4">
                       <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--a-green-soft)] text-[var(--a-green)]"><Icon width={17} height={17} /></span>
                       <div className="mt-3 text-sm font-bold text-[var(--a-ink)]">{d.title}</div>
                       <p className="mt-1 text-xs leading-5 text-[var(--a-body)]">{d.sub}</p>
@@ -274,10 +275,10 @@ export default function AriaBlogPost({ post, cfg }: BlogPostProps) {
             <div className="rounded-2xl border border-[var(--a-line)] bg-white p-5 shadow-sm">
               <h3 className="text-base font-bold text-[var(--a-ink)]">Categories</h3>
               <ul className="mt-4 space-y-3">
-                {categories.map((c) => {
+                {categories.map((c, i) => {
                   const Icon = c.icon;
                   return (
-                    <li key={c.name}><a href="#" className="flex items-center justify-between rounded-lg px-2 py-2.5 text-sm transition hover:bg-[#f6f7f5]">
+                    <li key={i}><a href="#" className="flex items-center justify-between rounded-lg px-2 py-2.5 text-sm transition hover:bg-[#f6f7f5]">
                       <span className="flex items-center gap-2.5 font-semibold text-[var(--a-ink)]"><Icon width={16} height={16} className="text-[var(--a-green)]" /> {c.name}</span>
                       <span className="rounded-md bg-[#f1f2ee] px-2 py-0.5 text-xs font-semibold text-[var(--a-body)]">{c.count}</span>
                     </a></li>
@@ -289,8 +290,8 @@ export default function AriaBlogPost({ post, cfg }: BlogPostProps) {
             <div className="rounded-2xl border border-[var(--a-line)] bg-white p-5 shadow-sm">
               <h3 className="text-base font-bold text-[var(--a-ink)]">Popular Posts</h3>
               <ul className="mt-4 space-y-6">
-                {POPULAR.map((p) => (
-                  <li key={p.title} className="flex items-center gap-3">
+                {POPULAR.map((p, i) => (
+                  <li key={i} className="flex items-center gap-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={p.img} alt={p.title} className="h-16 w-24 shrink-0 rounded-lg object-cover" />
                     <div><div className="text-[13px] font-bold leading-snug text-[var(--a-ink)] hover:text-[var(--a-green)]">{p.title}</div><div className="mt-0.5 text-[11px] text-[var(--a-body)]">{p.date}</div></div>
@@ -328,7 +329,7 @@ export default function AriaBlogPost({ post, cfg }: BlogPostProps) {
               <motion.article key={`${p.title}-${i}`} whileHover={{ y: -4 }} transition={{ type: "spring", stiffness: 300, damping: 22 }} className="flex flex-col overflow-hidden rounded-2xl border border-[var(--a-line)] bg-white shadow-sm">
                 <a href={(p as { href?: string }).href || "/blog"} className="relative">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={p.img} alt={p.title} className="aspect-[16/5] w-full object-cover" />
+                  <img src={p.img || u("1519741497674-611481863552", 600)} alt={p.title} className="aspect-[16/5] w-full object-cover" />
                   <span className="absolute left-3 top-3 rounded-md bg-white/95 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[var(--a-ink)]">{p.category}</span>
                 </a>
                 <div className="flex flex-1 flex-col p-4">

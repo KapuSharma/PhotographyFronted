@@ -38,6 +38,7 @@ const cn = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(" ")
 
 export default function AriaPackages({ content }: TemplatePageProps) {
   const pp = content?.packagesPage;
+  const heroActive = pp?.hero.active !== false;
   const heroEyebrow = pp?.hero.eyebrow || "Our Packages";
   const heroTitle = pp?.hero.title || "Choose the Perfect Package";
   const heroSubtitle = pp?.hero.subtitle || "Every moment is unique. Pick a package that fits your story and let us create memories that last forever.";
@@ -65,6 +66,7 @@ export default function AriaPackages({ content }: TemplatePageProps) {
   return (
     <main className="aria font-inter bg-[var(--a-cream)] text-[var(--a-ink)]">
       {/* ── Hero ── */}
+      {heroActive && (
       <Wrap className="py-14 text-center md:py-16">
         <Reveal><p className="text-[11px] font-bold uppercase tracking-[0.25em] text-[var(--a-green)]">{heroEyebrow}</p></Reveal>
         <Reveal delay={0.06}><h1 className="font-playfair mt-3 text-[clamp(2.2rem,4.6vw,3.4rem)] font-bold text-[var(--a-ink)]">{heroTitle}</h1></Reveal>
@@ -77,6 +79,7 @@ export default function AriaPackages({ content }: TemplatePageProps) {
           </div>
         </Reveal>
       </Wrap>
+      )}
 
       {/* ── Category tabs ── */}
       <Wrap>
@@ -116,10 +119,10 @@ export default function AriaPackages({ content }: TemplatePageProps) {
       <Wrap className="mt-8">
         <AnimatePresence mode="wait">
           <motion.div key={active} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.4, ease: EASE }} className="grid gap-6 lg:grid-cols-3">
-            {packages.map((p) => {
+            {packages.map((p, i) => {
               const pop = p.popular;
               return (
-                <motion.div key={p.name} whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 300, damping: 22 }}
+                <motion.div key={i} whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 300, damping: 22 }}
                   className={cn("flex h-full flex-col overflow-hidden rounded-[1.4rem] border bg-white shadow-sm", pop ? "border-[var(--a-gold)]/70 ring-2 ring-[var(--a-gold)]/20 lg:-mt-3" : "border-[var(--a-line)]")}>
                   <div className="relative p-2.5">
                     <div className="overflow-hidden rounded-xl">

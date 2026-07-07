@@ -64,6 +64,7 @@ const stripHtml = (s: string) =>
 
 export default function AriaReviews({ content }: TemplatePageProps) {
   const rp = content?.reviewsPage;
+  const heroActive = rp?.hero.active !== false;
   const heroEyebrow = rp?.hero.eyebrow || "Client Reviews";
   const heroTitle = rp?.hero.title || "Trusted by clients,";
   const heroAccent = rp?.hero.accent || "loved for memories.";
@@ -95,6 +96,7 @@ export default function AriaReviews({ content }: TemplatePageProps) {
   return (
     <main className="aria font-inter bg-[var(--a-cream)] text-[var(--a-ink)]">
       {/* ── Hero (overlay banner, blog-style) ── */}
+      {heroActive && (
       <section className="relative h-[230px] w-full overflow-hidden bg-[#f1e8db] sm:h-[260px] md:h-[290px]">
         {/* Full-bleed flatlay, anchored right; the left fades to cream for the text. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -116,9 +118,11 @@ export default function AriaReviews({ content }: TemplatePageProps) {
           </div>
         </div>
       </section>
+      )}
 
       {/* ── Rating summary (pulled up to overlap the hero banner) ── */}
-      <Wrap className="relative z-10 -mt-6 md:-mt-8">
+      {sum?.active !== false && (
+      <Wrap className={`relative z-10 ${heroActive ? "-mt-6 md:-mt-8" : "pt-8"}`}>
         <Reveal>
           <div className="grid gap-8 rounded-2xl border border-[var(--a-line)] bg-white p-6 shadow-sm md:grid-cols-[0.9fr_1.3fr_1.1fr] md:p-8">
             <div className="text-center md:border-r md:border-[var(--a-line)]">
@@ -144,6 +148,7 @@ export default function AriaReviews({ content }: TemplatePageProps) {
           </div>
         </Reveal>
       </Wrap>
+      )}
 
       {/* ── Filter tabs ── */}
       <Wrap className="mt-10">
@@ -200,7 +205,7 @@ export default function AriaReviews({ content }: TemplatePageProps) {
               <a href={photo?.viewAllHref || "#"} className="inline-flex items-center gap-1 text-xs font-bold text-[var(--a-green)]">{photo?.viewAllLabel || "View all photos"} <ArrowRight width={13} height={13} /></a>
             </div>
             <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-6">
-              {photoImgs.map((src, i) => (
+              {photoImgs.filter(Boolean).map((src, i) => (
                 <motion.div key={i} whileHover={{ scale: 1.04 }} className="overflow-hidden rounded-xl">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={src} alt={`Client photo ${i + 1}`} className="aspect-square w-full object-cover" />
@@ -215,6 +220,7 @@ export default function AriaReviews({ content }: TemplatePageProps) {
       {/* ── Video + Stats + Review-us-on ── */}
       <Wrap className="mt-5">
         <div className="grid items-start gap-5 lg:grid-cols-[1fr_1.25fr_0.85fr]">
+          {vid?.active !== false && (<>
           {/* Video testimonial */}
           <Reveal className="h-full">
             <div className="flex h-full flex-col rounded-2xl border border-[var(--a-line)] bg-[var(--a-green-soft)]/50 p-5">
@@ -245,6 +251,7 @@ export default function AriaReviews({ content }: TemplatePageProps) {
               </div>
             </div>
           </Reveal>
+          </>)}
 
           {/* Review us on */}
           {reviewOn?.active !== false && (

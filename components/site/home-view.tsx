@@ -10,6 +10,7 @@ import { SectionHeading, Section, CTABand } from "@/components/site/kit";
 import { AskAiButton } from "@/components/site/ask-ai-button";
 import { Stars } from "@/components/site/stars";
 import { stripHtml, plainSummary } from "@/lib/utils";
+import { initials } from "@/lib/initials";
 
 const CLIENTS = ["TATA", "KPMG", "amazon", "wipro", "airtel", "Deloitte."];
 
@@ -188,7 +189,7 @@ function Reviews({ content }: { content: SiteContent }) {
                 <p className="mt-2 text-[15px] leading-7 text-foreground/80">“{stripHtml(t.text)}”</p>
                 <div className="mt-5 flex items-center gap-3 border-t border-border pt-4">
                   <span className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white">
-                    {t.client.slice(0, 1)}
+                    {initials(t.client)}
                   </span>
                   <div>
                     <div className="text-sm font-bold text-foreground">{t.client}</div>

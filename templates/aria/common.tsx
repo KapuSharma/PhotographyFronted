@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { Reveal, Stagger, StaggerItem } from "./motion";
+import { initials } from "@/lib/initials";
 import type { SiteContent } from "@/templates/types";
 
 type WithContent = { content?: SiteContent };
@@ -118,8 +119,12 @@ export function StoriesSection({ content }: WithContent) {
               <Quote width={26} height={26} className="text-[var(--a-gold)]" />
               <p className="mt-2 flex-1 text-[13px] leading-6 text-[var(--a-body)]">{s.text}</p>
               <div className="mt-4 flex items-center gap-3">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={s.avatar} alt={s.name} className="h-10 w-10 rounded-full object-cover" />
+                {s.avatar ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img src={s.avatar} alt={s.name} className="h-10 w-10 rounded-full object-cover" />
+                ) : (
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--a-green-2)] text-xs font-bold text-white">{initials(s.name)}</span>
+                )}
                 <div>
                   <div className="text-sm font-bold text-[var(--a-ink)]">{s.name}</div>
                   <div className="text-xs text-[var(--a-body)]">{s.role}</div>
@@ -147,11 +152,11 @@ export function BlogSection({ content }: WithContent) {
         <ViewAll tone="blue" href={d?.viewAllHref || "/blog"}>{d?.viewAllLabel || "View all posts"}</ViewAll>
       </Reveal>
       <Stagger className="grid gap-5 sm:grid-cols-3 md:border-l md:border-[var(--a-line)] md:pl-10">
-        {items.map((b) => (
-          <StaggerItem key={b.title}>
+        {items.map((b, i) => (
+          <StaggerItem key={i}>
             <a href={(b as { href?: string }).href || "#"} className="group flex gap-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={b.img} alt="" className="h-16 w-16 shrink-0 rounded-lg object-cover" />
+              <img src={b.img || u("1519741497674-611481863552", 300)} alt="" className="h-16 w-16 shrink-0 rounded-lg object-cover" />
               <div>
                 <h4 className="text-[13px] font-bold leading-snug text-[var(--a-ink)] group-hover:text-[#3b6ea5]">{b.title}</h4>
                 <div className="mt-1 text-[11px] text-[var(--a-body)]">{b.date}</div>
@@ -205,8 +210,8 @@ export function PackagesSection({ content }: WithContent) {
         <ViewAll tone="gold" href={d?.viewAllHref || "/packages"}>{d?.viewAllLabel || "View all packages"}</ViewAll>
       </Reveal>
       <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {items.map((p) => (
-          <StaggerItem key={p.name}>
+        {items.map((p, i) => (
+          <StaggerItem key={i}>
             <div className={`flex h-full flex-col overflow-hidden rounded-2xl border bg-white shadow-sm ${p.popular ? "border-[var(--a-green)]/40 ring-2 ring-[var(--a-green)]/15" : "border-[var(--a-line)]"}`}>
               {p.img ? (
                 <div className="relative aspect-[16/9] overflow-hidden">

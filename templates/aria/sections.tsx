@@ -148,6 +148,7 @@ const Section = ({ children, className = "" }: { children: React.ReactNode; clas
 /* ── 1. Hero ── */
 export function AboutHero({ content }: WithContent) {
   const intro = content?.about?.intro;
+  if (intro?.active === false) return null;
   const body = stripHtml(intro?.body || "") || "Aria Studio is a boutique photography studio based in Kolkata. We specialize in weddings, pre-weddings, maternity, fashion and brand photography across India. Our goal is simple — to capture your real emotions with creativity, care and perfection.";
   const heroImg = intro?.image || IMG.heroMain;
   const eyebrow = intro?.eyebrow || "About Us";
@@ -176,8 +177,8 @@ export function AboutHero({ content }: WithContent) {
             </div>
           </Reveal>
           <Stagger className="mt-12 grid grid-cols-2 gap-y-7 sm:grid-cols-4 sm:divide-x sm:divide-[var(--a-line)]">
-            {features.map((f) => (
-              <StaggerItem key={f.label} className="flex flex-col items-center gap-2.5 px-4 text-center">
+            {features.map((f, i) => (
+              <StaggerItem key={i} className="flex flex-col items-center gap-2.5 px-4 text-center">
                 <f.Icon width={26} height={26} strokeWidth={1.6} className="text-[var(--a-gold)]" />
                 <span className="text-[11px] font-semibold leading-tight text-[var(--a-body)]">{f.label}</span>
               </StaggerItem>
@@ -217,6 +218,7 @@ export function AboutHero({ content }: WithContent) {
 
 /* ── 2. Stats bar ── */
 export function StatsBar({ content }: WithContent) {
+  if (content?.about?.stats?.active === false) return null;
   const items = content?.about?.stats?.items?.length
     ? content.about.stats.items.map((it, i) => ({ icon: STATS[i % STATS.length].icon, value: it.value, label: it.label }))
     : STATS;
@@ -224,8 +226,8 @@ export function StatsBar({ content }: WithContent) {
     <Section className="py-6">
       <Reveal>
         <div className="grid grid-cols-2 gap-y-6 rounded-2xl border border-[var(--a-line)] bg-white p-6 shadow-[0_10px_40px_-20px_rgba(14,90,68,0.25)] sm:grid-cols-3 md:grid-cols-5 md:divide-x md:divide-[var(--a-line)] md:p-7">
-          {items.map((s) => (
-            <div key={s.label} className="flex items-center gap-3 px-2 md:justify-center md:px-4">
+          {items.map((s, i) => (
+            <div key={i} className="flex items-center gap-3 px-2 md:justify-center md:px-4">
               <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[var(--a-green-soft)] text-[var(--a-green)]"><s.icon width={19} height={19} /></span>
               <div>
                 <div className="font-playfair text-2xl font-bold leading-none text-[var(--a-ink)]">{s.value}</div>
@@ -241,6 +243,7 @@ export function StatsBar({ content }: WithContent) {
 
 /* ── 3. Our Journey ── */
 export function Journey({ content }: WithContent) {
+  if (content?.about?.journey?.active === false) return null;
   const j = content?.about?.journey;
   const eyebrow = j?.eyebrow || "Our Journey";
   const title = j?.title || "From Passion to Purpose";
@@ -272,6 +275,7 @@ export function Journey({ content }: WithContent) {
 
 /* ── 4. Meet the Team ── */
 export function Team({ content }: WithContent) {
+  if (content?.about?.team?.active === false) return null;
   const t = content?.about?.team;
   const eyebrow = t?.eyebrow || "Meet the Team";
   const title = t?.title || "The People Behind the Lens";
@@ -287,7 +291,7 @@ export function Team({ content }: WithContent) {
                 <div className="overflow-hidden rounded-2xl border border-[var(--a-line)] bg-white shadow-sm">
                   <div className="aspect-[4/3.3] overflow-hidden">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={m.img} alt={m.name} className="h-full w-full object-cover" />
+                    <img src={m.img || u("1544005313-94ddf0286df2", 600)} alt={m.name} className="h-full w-full object-cover" />
                   </div>
                   <div className="p-5 text-center">
                     <div className="font-playfair text-lg font-bold text-[var(--a-ink)]">{m.name}</div>
@@ -312,6 +316,7 @@ export function Team({ content }: WithContent) {
 
 /* ── 5. Behind the Scenes ── */
 export function BehindScenes({ content }: WithContent) {
+  if (content?.about?.behindScenes?.active === false) return null;
   const b = content?.about?.behindScenes;
   const eyebrow = b?.eyebrow || "Behind the Scenes";
   const title = b?.title || "Where Magic Happens";
@@ -335,6 +340,7 @@ export function BehindScenes({ content }: WithContent) {
 
 /* ── 6. Why Choose Us ── */
 export function WhyUs({ content }: WithContent) {
+  if (content?.about?.whyUs?.active === false) return null;
   const w0 = content?.about?.whyUs;
   const eyebrow = w0?.eyebrow || "Why Clients Choose Us";
   const title = w0?.title || "The Aria Difference";
@@ -362,6 +368,7 @@ export function WhyUs({ content }: WithContent) {
 
 /* ── 7. Testimonials (carousel) ── */
 export function Testimonials({ content }: WithContent) {
+  if (content?.about?.testimonials?.active === false) return null;
   const list = content?.testimonials?.length
     ? content.testimonials.map((t, i) => ({
         name: t.client || "Client",
@@ -425,6 +432,7 @@ export function Testimonials({ content }: WithContent) {
 
 /* ── 8. CTA footer ── */
 export function CtaFooter({ content }: WithContent) {
+  if (content?.about?.cta?.active === false) return null;
   const c = content?.about?.cta;
   return (
     <Section className="pb-10 pt-2">

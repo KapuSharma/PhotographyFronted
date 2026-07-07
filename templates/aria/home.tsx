@@ -7,14 +7,17 @@
    in the aria design language. Placeholder data, ready for CMS wiring.
    ===================================================================== */
 
+import { useState, useEffect, useCallback } from "react";
 import {
   Calendar, MessageCircle, ArrowRight, Star, Check, BadgeCheck,
   MapPin, Sparkles, Quote, Heart, Users, Baby, Briefcase, Package as PackageIcon,
-  Shirt, Camera, PartyPopper, type LucideIcon,
+  Shirt, Camera, PartyPopper, X, ChevronLeft, ChevronRight, ZoomIn, type LucideIcon,
 } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 
-import { Reveal, Stagger, StaggerItem, Tilt } from "./motion";
+import { Reveal, Stagger, StaggerItem, Tilt, EASE } from "./motion";
 import { CommonSections } from "./common";
+import { initials } from "@/lib/initials";
 import type { TemplateHomeProps } from "@/templates/types";
 
 const u = (id: string, w = 900) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=80`;
@@ -51,6 +54,13 @@ const Wrap = ({ children, className = "" }: { children: React.ReactNode; classNa
   <section className={`mx-auto w-full max-w-[1200px] px-5 sm:px-6 lg:px-8 xl:max-w-[1360px] xl:px-10 2xl:max-w-[1560px] 2xl:px-14 ${className}`}>{children}</section>
 );
 const cn = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(" ");
+/* Ensure a price shows a currency symbol: bare numbers ("50,000") get a ₹;
+   values that already start with a symbol or a word are left untouched. */
+const withCurrency = (v?: string) => {
+  const s = (v || "").trim();
+  if (!s || /^[₹$€£]/.test(s)) return s;
+  return /^[\d]/.test(s) ? `₹${s}` : s;
+};
 
 const Head = ({ eyebrow, title, desc, center = false }: { eyebrow: string; title: React.ReactNode; desc?: string; center?: boolean }) => {
   const cleanDesc = typeof desc === "string" ? stripHtml(desc) : desc;
@@ -65,6 +75,59 @@ const Head = ({ eyebrow, title, desc, center = false }: { eyebrow: string; title
 const Stars = ({ n = 5 }: { n?: number }) => (
   <div className="flex gap-0.5">{Array.from({ length: 5 }).map((_, i) => <Star key={i} width={14} height={14} className={i < n ? "fill-[var(--a-gold)] text-[var(--a-gold)]" : "text-[var(--a-line)]"} />)}</div>
 );
+
+/* Direction-aware slide for the lightbox image. */
+const slideVariants = {
+  enter: (d: number) => ({ opacity: 0, x: d >= 0 ? 60 : -60 }),
+  center: { opacity: 1, x: 0 },
+  exit: (d: number) => ({ opacity: 0, x: d >= 0 ? -60 : 60 }),
+};
+
+/* Full-screen image viewer: blurred backdrop, prev/next, keyboard nav, slide. */
+function Lightbox({ images, index, onClose, onIndex }: { images: string[]; index: number; onClose: () => void; onIndex: (i: number) => void }) {
+  const [dir, setDir] = useState(0);
+  const go = useCallback((delta: number) => {
+    setDir(delta);
+    onIndex((index + delta + images.length) % images.length);
+  }, [index, images.length, onIndex]);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      else if (e.key === "ArrowLeft") go(-1);
+      else if (e.key === "ArrowRight") go(1);
+    };
+    window.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
+  }, [go, onClose]);
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4" role="dialog" aria-modal="true">
+      {/* Blurred backdrop — click to close */}
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-xl" onClick={onClose} />
+      <button onClick={onClose} aria-label="Close" className="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur transition hover:bg-white/20"><X width={22} height={22} /></button>
+      {images.length > 1 && (
+        <button onClick={() => go(-1)} aria-label="Previous image" className="absolute left-3 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur transition hover:bg-white/20 md:left-6"><ChevronLeft width={26} height={26} /></button>
+      )}
+      {images.length > 1 && (
+        <button onClick={() => go(1)} aria-label="Next image" className="absolute right-3 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur transition hover:bg-white/20 md:right-6"><ChevronRight width={26} height={26} /></button>
+      )}
+      <div className="relative z-[1] flex h-full w-full max-w-5xl items-center justify-center overflow-hidden">
+        <AnimatePresence mode="wait" custom={dir}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <motion.img key={index} custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit"
+            transition={{ duration: 0.32, ease: EASE }} src={images[index]} alt=""
+            className="max-h-[82vh] max-w-full rounded-xl object-contain shadow-2xl" />
+        </AnimatePresence>
+      </div>
+      {images.length > 1 && (
+        <div className="absolute bottom-5 left-1/2 z-10 -translate-x-1/2 rounded-full bg-white/10 px-4 py-1.5 text-sm font-semibold text-white backdrop-blur">{index + 1} / {images.length}</div>
+      )}
+    </motion.div>
+  );
+}
 
 /* Map a CMS service category → a glyph for the service card badge. */
 const CAT_ICON: Record<string, LucideIcon> = {
@@ -106,9 +169,9 @@ export default function AriaHome({ content }: TemplateHomeProps) {
 
   // ── Collections ──
   const services = content?.services?.length
-    ? content.services.map((s) => ({ name: s.name, from: s.from || "", icon: catIc(s.category), img: s.photo?.src || s.images?.[0] || "", desc: s.desc || "" }))
+    ? content.services.map((s) => ({ name: s.name, from: s.from || "", icon: catIc(s.category), img: s.photo?.src || s.images?.[0] || u("1519741497674-611481863552", 700), desc: s.desc || "" }))
     : SERVICES;
-  const portfolio = content?.portfolio?.length ? content.portfolio.map((p) => p.src) : PORTFOLIO.map((id) => u(id, 900));
+  const portfolio = content?.portfolio?.length ? content.portfolio.map((p) => p.src).filter(Boolean) : PORTFOLIO.map((id) => u(id, 900));
   const packages = content?.packages?.length
     ? content.packages.map((p) => ({ duration: p.duration || "", name: p.name, price: p.price || "", bestFor: p.description || p.bestFor || "", includes: p.includes || [], popular: p.popular }))
     : PACKAGES;
@@ -121,6 +184,12 @@ export default function AriaHome({ content }: TemplateHomeProps) {
   const ctaActive = ctaData?.active !== false;
   const ctaTitle = ctaData?.title || "Ready to lock your date?";
   const ctaSubtitle = ctaData?.subtitle || "Start a booking now, or ask the AI assistant anything about packages, availability and delivery.";
+
+  // Portfolio: show at most 9, click to open in a lightbox.
+  const shownPortfolio = portfolio.slice(0, 9);
+  // Lightbox holds the image set + current index, so it serves both the hero
+  // photo-strip and the portfolio grid.
+  const [lb, setLb] = useState<{ images: string[]; index: number } | null>(null);
 
   return (
     <main className="aria font-inter bg-[var(--a-cream)] text-[var(--a-ink)]">
@@ -173,12 +242,16 @@ export default function AriaHome({ content }: TemplateHomeProps) {
           {marqueeEnabled && (
           <Reveal delay={0.3}>
             <div className="mt-10 overflow-hidden rounded-2xl border border-[var(--a-line)] bg-white/40 p-3 backdrop-blur">
-              <div className="marquee flex w-max gap-3">
+              <div className="marquee flex w-max gap-3 hover:[animation-play-state:paused]">
                 {[...strip, ...strip].map((src, i) => (
-                  <div key={i} className="relative h-24 w-36 shrink-0 overflow-hidden rounded-xl">
+                  <button type="button" key={i} onClick={() => setLb({ images: strip, index: i % strip.length })} aria-label="Open image"
+                    className="group relative h-24 w-36 shrink-0 overflow-hidden rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--a-green)]">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={src} alt="" className="h-full w-full object-cover" />
-                  </div>
+                    <img src={src} alt="" className="h-full w-full object-cover transition duration-500 ease-out group-hover:scale-110" />
+                    <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 transition duration-300 group-hover:bg-black/30">
+                      <ZoomIn width={18} height={18} className="text-white opacity-0 transition duration-300 group-hover:opacity-100" />
+                    </span>
+                  </button>
                 ))}
               </div>
             </div>
@@ -198,16 +271,17 @@ export default function AriaHome({ content }: TemplateHomeProps) {
             return (
               <StaggerItem key={i}>
                 <Tilt intensity={6} className="h-full">
-                  <a href="/services" className="group flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--a-line)] bg-white shadow-sm transition hover:shadow-md">
+                  <a href="/services" className="group flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--a-line)] bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-[var(--a-green)]/40 hover:shadow-lg">
                     <div className="relative h-32 overflow-hidden">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={s.img} alt={s.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                      <img src={s.img} alt={s.name} className="h-full w-full object-cover transition duration-500 ease-out group-hover:scale-110" />
+                      <span className="pointer-events-none absolute inset-0 bg-[var(--a-green)]/0 transition duration-300 group-hover:bg-[var(--a-green)]/10" />
                       <span className="absolute left-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[var(--a-green)] shadow"><Icon width={15} height={15} /></span>
                     </div>
                     <div className="p-4">
                       <div className="flex items-center justify-between">
                         <p className="font-bold text-[var(--a-ink)]">{s.name}</p>
-                        <span className="text-sm font-semibold text-[var(--a-green)]">{s.from}</span>
+                        <span className="text-sm font-semibold text-[var(--a-green)]">{withCurrency(s.from)}</span>
                       </div>
                       <p className="mt-1 line-clamp-2 text-xs leading-5 text-[var(--a-body)]">{s.desc}</p>
                     </div>
@@ -225,15 +299,22 @@ export default function AriaHome({ content }: TemplateHomeProps) {
       <Wrap className="pb-12 md:pb-14">
         <Head eyebrow={portHead?.eyebrow || "Selected work"} title={portHead?.title || "Portfolio highlights"} desc={portHead?.desc || undefined} />
         <div className="mt-8 grid auto-rows-[170px] grid-cols-2 gap-3 md:grid-cols-4">
-          {portfolio.map((src, i) => (
-            <Reveal key={i} delay={i * 0.04} className={cn("relative overflow-hidden rounded-2xl", i === 0 && "col-span-2 row-span-2")}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={src} alt="" className="h-full w-full object-cover transition duration-700 hover:scale-105" />
+          {shownPortfolio.map((src, i) => (
+            <Reveal key={i} delay={i * 0.04} className={cn("relative", i === 0 && "col-span-2 row-span-2")}>
+              <button type="button" onClick={() => setLb({ images: shownPortfolio, index: i })} aria-label="Open image"
+                className="group relative block h-full w-full overflow-hidden rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--a-green)]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={src} alt="" className="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-110" />
+                {/* Hover overlay + zoom hint */}
+                <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/45 via-black/10 to-transparent opacity-0 transition duration-300 group-hover:opacity-100">
+                  <span className="flex h-11 w-11 translate-y-2 items-center justify-center rounded-full bg-white/90 text-[var(--a-ink)] shadow-lg transition duration-300 group-hover:translate-y-0"><ZoomIn width={20} height={20} /></span>
+                </span>
+              </button>
             </Reveal>
           ))}
         </div>
-        <Reveal className="mt-6">
-          <a href="/gallery" className="inline-flex items-center gap-2 rounded-full border border-[var(--a-green)]/40 bg-white px-5 py-3 text-sm font-bold text-[var(--a-green)] transition hover:bg-[var(--a-green-soft)]">View full gallery <ArrowRight width={15} height={15} /></a>
+        <Reveal className="mt-8 flex justify-center">
+          <a href="/gallery" className="group inline-flex items-center gap-2 rounded-full bg-[var(--a-green-2)] px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-[var(--a-green-2)]/25 transition hover:-translate-y-0.5 hover:bg-[var(--a-green)]">View full gallery <ArrowRight width={16} height={16} className="transition-transform group-hover:translate-x-1" /></a>
         </Reveal>
       </Wrap>
       )}
@@ -250,7 +331,7 @@ export default function AriaHome({ content }: TemplateHomeProps) {
                   {p.popular && <span className="absolute -top-3 left-6 rounded-full bg-[var(--a-gold)] px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow">Most booked</span>}
                   <p className="text-xs font-semibold uppercase tracking-wide text-[var(--a-body)]">{p.duration}</p>
                   <h3 className="font-playfair mt-1 text-xl font-extrabold text-[var(--a-ink)]">{p.name}</h3>
-                  <p className={cn("mt-2 text-3xl font-bold", p.popular ? "text-[var(--a-gold)]" : "text-[var(--a-ink)]")}>{p.price}</p>
+                  <p className={cn("mt-2 text-3xl font-bold", p.popular ? "text-[var(--a-gold)]" : "text-[var(--a-ink)]")}>{withCurrency(p.price)}</p>
                   <p className="mt-1 text-sm text-[var(--a-body)]">{p.bestFor}</p>
                   <ul className="mt-4 flex-1 space-y-2">
                     {p.includes.map((x, xi) => (
@@ -277,7 +358,7 @@ export default function AriaHome({ content }: TemplateHomeProps) {
                 <Quote width={28} height={28} className="text-[var(--a-green-faint)]" fill="currentColor" />
                 <p className="mt-2 flex-1 text-[15px] leading-7 text-[var(--a-ink)]/85">{t.text}</p>
                 <div className="mt-5 flex items-center gap-3 border-t border-[var(--a-line)] pt-4">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--a-green-2)] text-sm font-bold text-white">{t.client.slice(0, 1)}</span>
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--a-green-2)] text-sm font-bold text-white">{initials(t.client)}</span>
                   <div><div className="text-sm font-bold text-[var(--a-ink)]">{t.client}</div><div className="text-xs text-[var(--a-body)]">{t.city}</div></div>
                   <div className="ml-auto"><Stars n={t.rating} /></div>
                 </div>
@@ -308,6 +389,18 @@ export default function AriaHome({ content }: TemplateHomeProps) {
       </Wrap>
       )}
       <CommonSections content={content} page="home" />
+
+      {/* ── Image lightbox (portfolio + hero strip) ── */}
+      <AnimatePresence>
+        {lb && (
+          <Lightbox
+            images={lb.images}
+            index={lb.index}
+            onClose={() => setLb(null)}
+            onIndex={(index) => setLb((cur) => (cur ? { ...cur, index } : cur))}
+          />
+        )}
+      </AnimatePresence>
     </main>
   );
 }

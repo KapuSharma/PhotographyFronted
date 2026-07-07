@@ -80,6 +80,7 @@ export default function AriaGallery({ content }: TemplatePageProps) {
   // CMS content (galleryPage blob + portfolio/categories), falling back to the
   // placeholder data so the template still renders standalone.
   const gp = content?.galleryPage;
+  const heroActive = gp?.hero.active !== false;
   const eyebrow = gp?.hero.eyebrow || "Our Gallery";
   const title = gp?.hero.title || "Gallery";
   const subtitle = gp?.hero.subtitle || "A collection of real moments, captured with creativity and passion.";
@@ -88,7 +89,7 @@ export default function AriaGallery({ content }: TemplatePageProps) {
     : HERO_STATS.map((s) => ({ Icon: s.icon, value: s.value, label: s.label }));
   const categories = content?.galleryCategories?.length ? ["All", ...content.galleryCategories] : CATEGORIES;
   const items: { title: string; category: string; count?: number; img: string }[] = content?.portfolio?.length
-    ? content.portfolio.map((p) => ({ title: p.title, category: p.category, img: p.src }))
+    ? content.portfolio.map((p) => ({ title: p.title, category: p.category, img: p.src || u("1519741497674-611481863552") }))
     : GALLERY;
   const features = gp?.features.active === false
     ? []
@@ -104,6 +105,7 @@ export default function AriaGallery({ content }: TemplatePageProps) {
   return (
     <main className="aria font-inter bg-[var(--a-cream)] text-[var(--a-ink)]">
       {/* ── Hero (linen backdrop + scattered photo collage) ── */}
+      {heroActive && (
       <section className="relative min-h-[340px] w-full overflow-hidden md:min-h-[430px]" style={{ background: "linear-gradient(115deg, #f3ede3 0%, #faf6ef 55%, #fdfbf7 100%)" }}>
         {/* Scattered white-bordered photo cards — right half (hidden on mobile) */}
         <div className="absolute inset-y-0 right-0 hidden w-[56%] md:block">
@@ -154,6 +156,7 @@ export default function AriaGallery({ content }: TemplatePageProps) {
           </div>
         </div>
       </section>
+      )}
 
       {/* ── Filterable grid ── */}
       <Wrap className="py-10">

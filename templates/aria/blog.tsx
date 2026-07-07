@@ -46,6 +46,7 @@ const stripHtml = (s: string) => (s || "").replace(/<[^>]*>/g, " ").replace(/&nb
 
 export default function AriaBlog({ content }: TemplatePageProps) {
   const bp = content?.blogPage;
+  const heroActive = bp?.hero.active !== false;
   const heroEyebrow = bp?.hero.eyebrow || "Our Blog";
   const heroTitle = bp?.hero.title || "Stories, tips & inspiration for better";
   const heroAccent = bp?.hero.accent || "memories";
@@ -58,7 +59,7 @@ export default function AriaBlog({ content }: TemplatePageProps) {
   const suggest = bp?.suggest;
 
   const allPosts = content?.blog?.length
-    ? content.blog.map((b) => ({ cat: b.category || "", date: b.date, title: b.title, excerpt: stripHtml(b.excerpt), read: "5 min read", img: b.image }))
+    ? content.blog.map((b) => ({ cat: b.category || "", date: b.date, title: b.title, excerpt: stripHtml(b.excerpt), read: "5 min read", img: b.image || u("1519741497674-611481863552", 900) }))
     : null;
   const featured = allPosts?.length ? allPosts[0] : FEATURED;
   const basePosts = allPosts?.length ? allPosts.slice(1) : POSTS;
@@ -71,6 +72,7 @@ export default function AriaBlog({ content }: TemplatePageProps) {
   return (
     <main className="aria font-inter bg-[var(--a-cream)] text-[var(--a-body)]">
       {/* ── Overlay hero banner ── */}
+      {heroActive && (
       <section className="relative h-[230px] w-full overflow-hidden bg-[#f7f6f4] sm:h-[260px] md:h-[290px]">
         {/* Full-bleed image, anchored right so the camera always shows; the empty
             cream left (under the text) is the part that gets cropped as it fills. */}
@@ -97,6 +99,7 @@ export default function AriaBlog({ content }: TemplatePageProps) {
           </div>
         </div>
       </section>
+      )}
 
       {/* ── Filter pills ── */}
       <Wrap className="py-6">
@@ -148,8 +151,8 @@ export default function AriaBlog({ content }: TemplatePageProps) {
 
           {/* Post grid */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {shown.map((p) => (
-              <Reveal key={p.title}>
+            {shown.map((p, i) => (
+              <Reveal key={i}>
                 <motion.article whileHover={{ y: -4 }} transition={{ type: "spring", stiffness: 300, damping: 22 }} className="flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--a-line)] bg-white shadow-[0_6px_28px_rgba(20,40,32,.05)]">
                   <div className="relative h-28">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -191,7 +194,7 @@ export default function AriaBlog({ content }: TemplatePageProps) {
                 {popularItems.map((p, i) => (
                   <a key={`${p.title}-${i}`} href={(p as { href?: string }).href || "#"} className="group flex items-center">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={p.img} alt={p.title} className="h-14 w-20 shrink-0 rounded-lg object-cover" />
+                    <img src={p.img || u("1519741497674-611481863552", 160)} alt={p.title} className="h-14 w-20 shrink-0 rounded-lg object-cover" />
                     <div className="flex min-w-0 flex-col justify-center pl-3">
                       <p className="mb-0.5 text-[13px] font-semibold leading-tight text-[var(--a-ink)] group-hover:text-[var(--a-green)]">{p.title}</p>
                       <p className="text-[11px] text-[#9a968c]">{p.date}</p>
