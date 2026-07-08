@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Calendar, Check } from "lucide-react";
 
 import { getSite } from "@/lib/get-site";
+import { priceRange } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AskAiButton } from "@/components/site/ask-ai-button";
@@ -43,7 +44,7 @@ export default async function PackageDetailPage({
           <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">
             {pkg.name}
           </h1>
-          <p className="mt-2 text-3xl font-extrabold tracking-tight text-brand-600">{pkg.price}</p>
+          <p className="mt-2 text-3xl font-extrabold tracking-tight text-brand-600">{priceRange(pkg.price, pkg.priceMax, content.currencySymbol).text}</p>
           {pkg.bestFor ? <p className="mt-2 text-base leading-7 text-muted-foreground">{pkg.bestFor}</p> : null}
           {pkg.content ? (
             <div className="rich-content mt-4 text-sm leading-7 text-muted-foreground" dangerouslySetInnerHTML={{ __html: pkg.content }} />

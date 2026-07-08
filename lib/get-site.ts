@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 
-import { PHOTOS, type Photo } from "@/lib/data";
+import { PHOTOS, symbolFromCurrency, type Photo } from "@/lib/data";
 import { getSiteContent } from "@/lib/site-content";
 import { DEFAULT_TEMPLATE, TEMPLATES } from "@/templates/registry";
 import type { SiteContent } from "@/templates/types";
@@ -107,6 +107,7 @@ export async function getSite(opts?: { domain?: string }): Promise<ResolvedSite>
             from:
               (s.price as string) ||
               (s.startingPrice ? `₹${s.startingPrice}` : ""),
+            fromMax: (s.priceMax as string) || "",
             desc: (s.description as string) || "",
             img: i % PHOTOS.length,
             photo: imgs[0] ? ({ id: `s${i}`, title: (s.name as string) || "", category: (s.category as string) || "", src: imgs[0] } as Photo) : PHOTOS[i % PHOTOS.length],
@@ -126,6 +127,7 @@ export async function getSite(opts?: { domain?: string }): Promise<ResolvedSite>
           id: (p.id as string) || `pkg-${i}`,
           name: (p.name as string) || "Package",
           price: (p.price as string) || "",
+          priceMax: (p.priceMax as string) || "",
           duration: (p.duration as string) || "",
           bestFor: (p.bestFor as string) || "",
           popular: Boolean(p.popular),
@@ -546,6 +548,7 @@ export async function getSite(opts?: { domain?: string }): Promise<ResolvedSite>
     const content: SiteContent = {
       ...mock,
       studioName: data.studioName || mock.studioName,
+      currencySymbol: symbolFromCurrency((data.currency as string) || null) || mock.currencySymbol,
       hero,
       services,
       packages,

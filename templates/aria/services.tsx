@@ -15,6 +15,7 @@ import { AnimatePresence, motion } from "motion/react";
 
 import { Reveal, EASE } from "./motion";
 import { CommonSections } from "./common";
+import { priceRange } from "@/lib/data";
 import type { TemplatePageProps } from "@/templates/types";
 
 const u = (id: string, w = 700) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=80`;
@@ -35,7 +36,7 @@ const TABS: { name: string; icon: React.ComponentType<{ size?: number; className
 ];
 
 type Svc = {
-  name: string; cat: string; rating: string; reviews: string; price: string; features: string[];
+  name: string; cat: string; rating: string; reviews: string; price: string; priceMax?: string; features: string[];
   icon: React.ComponentType<{ size?: number; className?: string }>; img: string; thumbs: string[];
   color: string; priceCls: string; btnCls: string; iconCls: string;
 };
@@ -85,6 +86,7 @@ const Stars = ({ n = 5 }: { n?: number }) => (
 );
 
 export default function AriaServices({ content }: TemplatePageProps) {
+  const sym = content?.currencySymbol || "₹";
   const sp = content?.servicesPage;
   const heroActive = sp?.hero.active !== false;
   const heroTitle = sp?.hero.title || "Our Services";
@@ -100,7 +102,7 @@ export default function AriaServices({ content }: TemplatePageProps) {
         const imgs = (s.images?.length ? s.images : [s.photo?.src]).filter(Boolean) as string[];
         return {
           name: s.name, cat: s.category || "", rating: s.rating || "4.9", reviews: s.reviews || "",
-          price: s.from || "", features: s.features?.length ? s.features : (s.desc ? [s.desc] : []),
+          price: s.from || "", priceMax: s.fromMax || "", features: s.features?.length ? s.features : (s.desc ? [s.desc] : []),
           icon: catIc(s.category), img: s.photo?.src || imgs[0] || u("1519741497674-611481863552", 800), thumbs: imgs.slice(0, 3),
           color: pal.color, priceCls: pal.priceCls, btnCls: pal.btnCls, iconCls: "",
         };
@@ -177,8 +179,8 @@ export default function AriaServices({ content }: TemplatePageProps) {
               <Camera width={58} height={58} className="pointer-events-none absolute -right-2 top-2 text-[var(--a-gold)]/10" />
               <div className="flex items-center gap-2"><FeaturedIcon size={19} className="text-[var(--a-gold)]" /><h3 className="font-playfair text-lg font-bold text-[var(--a-ink)]">{featured.name}</h3></div>
               <div className="mt-1 flex items-center gap-2 text-sm"><Stars /><span className="font-bold text-[var(--a-ink)]">{featured.rating}</span>{featured.reviews && <span className="text-[var(--a-body)]">({featured.reviews} Reviews)</span>}</div>
-              <div className="mt-2 text-[11px] font-bold uppercase tracking-wide text-[var(--a-body)]">Starting at</div>
-              <div className="text-xl font-bold text-[var(--a-green)]">{featured.price}</div>
+              <div className="mt-2 text-[11px] font-bold uppercase tracking-wide text-[var(--a-body)]">{priceRange(featured.price, featured.priceMax, sym).isRange ? "Price range" : "Starting at"}</div>
+              <div className="whitespace-nowrap text-xl font-bold text-[var(--a-green)]">{priceRange(featured.price, featured.priceMax, sym).text}</div>
               <p className="mt-1.5 max-w-xs text-[13px] leading-5 text-[var(--a-body)]">{featuredDesc}</p>
               <div className="mt-2.5 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-[var(--a-ink)]/80 sm:grid-cols-3">
                 {featured.features.slice(0, 5).map((f, i) => (
@@ -226,8 +228,8 @@ export default function AriaServices({ content }: TemplatePageProps) {
                   <div className="flex flex-1 flex-col px-4 pb-4 pt-9">
                     <h3 className="font-playfair text-lg font-bold text-[var(--a-ink)]">{s.name}</h3>
                     <div className="mt-1 flex items-center gap-1.5 text-xs"><Stars /><span className="font-bold text-[var(--a-ink)]">{s.rating}</span><span className="text-[var(--a-body)]">({s.reviews})</span></div>
-                    <div className="mt-3 text-[10px] font-bold uppercase tracking-wide" style={{ color: s.color }}>Starting at</div>
-                    <div className={cn("text-2xl font-bold", s.priceCls)}>{s.price}</div>
+                    <div className="mt-3 text-[10px] font-bold uppercase tracking-wide" style={{ color: s.color }}>{priceRange(s.price, s.priceMax, sym).isRange ? "Price range" : "Starting at"}</div>
+                    <div className={cn("whitespace-nowrap text-2xl font-bold", s.priceCls)}>{priceRange(s.price, s.priceMax, sym).text}</div>
                     <ul className="mt-3 flex-1 space-y-1.5">
                       {s.features.map((f) => (
                         <li key={f} className="flex items-start gap-1.5 text-xs text-[var(--a-ink)]/80"><CheckCircle2 width={14} height={14} className="mt-0.5 shrink-0 text-[var(--a-body)]/50" /> {f}</li>

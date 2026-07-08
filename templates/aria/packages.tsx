@@ -15,6 +15,7 @@ import { AnimatePresence, motion } from "motion/react";
 
 import { Reveal, EASE } from "./motion";
 import { CommonSections } from "./common";
+import { priceRange } from "@/lib/data";
 import type { TemplatePageProps } from "@/templates/types";
 
 const u = (id: string, w = 700) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=80`;
@@ -24,7 +25,7 @@ const CATEGORIES: { name: string; icon: LucideIcon }[] = [
   { name: "Fashion", icon: Shirt }, { name: "Corporate", icon: Briefcase }, { name: "Product", icon: PackageIcon }, { name: "Event", icon: PartyPopper },
 ];
 
-type Pkg = { badge: string; duration: string; name: string; price: string; desc: string; includes: string[]; img: string; popular?: boolean };
+type Pkg = { badge: string; duration: string; name: string; price: string; priceMax?: string; desc: string; includes: string[]; img: string; popular?: boolean };
 const PACKAGES: Pkg[] = [
   { badge: "Essential", duration: "2 Hours", name: "Essential Frame", price: "₹18,000", desc: "Perfect for intimate ceremonies and small celebrations.", includes: ["25 Edited Images", "Private Online Gallery", "1 Photographer", "7-Day Delivery", "1 Location"], img: u("1519741497674-611481863552") },
   { badge: "Most Popular", duration: "Half Day", name: "Signature Story", price: "₹50,000", desc: "Ideal for pre-wedding, fashion, events and brand shoots.", includes: ["120 Edited Images", "Client Selection Flow", "2 Photographers", "48-Hour Sneak Peek", "2 Locations"], img: u("1583939003579-730e3918a45a"), popular: true },
@@ -37,6 +38,7 @@ const Wrap = ({ children, className = "" }: { children: React.ReactNode; classNa
 const cn = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(" ");
 
 export default function AriaPackages({ content }: TemplatePageProps) {
+  const sym = content?.currencySymbol || "₹";
   const pp = content?.packagesPage;
   const heroActive = pp?.hero.active !== false;
   const heroEyebrow = pp?.hero.eyebrow || "Our Packages";
@@ -53,6 +55,7 @@ export default function AriaPackages({ content }: TemplatePageProps) {
         duration: p.duration || "",
         name: p.name,
         price: p.price || "",
+        priceMax: p.priceMax || "",
         desc: p.description || p.bestFor || "",
         includes: p.includes || [],
         img: p.images?.[0] || u("1519741497674-611481863552"),
@@ -137,10 +140,15 @@ export default function AriaPackages({ content }: TemplatePageProps) {
                         <div className="text-xs font-bold uppercase tracking-wide text-[var(--a-body)]">{p.duration}</div>
                         <h4 className="font-playfair mt-1 text-xl font-bold text-[var(--a-ink)]">{p.name}</h4>
                       </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-[var(--a-ink)]">{p.price}</div>
-                        <div className="text-[10px] font-semibold uppercase text-[var(--a-body)]">Starting from</div>
-                      </div>
+                      {(() => {
+                        const pr = priceRange(p.price, p.priceMax, sym);
+                        return (
+                          <div className="text-right">
+                            <div className="whitespace-nowrap text-2xl font-bold text-[var(--a-ink)]">{pr.text}</div>
+                            <div className="text-[10px] font-semibold uppercase text-[var(--a-body)]">{pr.isRange ? "Price range" : "Starting from"}</div>
+                          </div>
+                        );
+                      })()}
                     </div>
                     <p className="mt-3 text-sm text-[var(--a-body)]">{p.desc}</p>
                     <ul className="mt-5 grid flex-1 grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">

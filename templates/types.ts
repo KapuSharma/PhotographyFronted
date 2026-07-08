@@ -65,6 +65,8 @@ export type CommonSectionsContent = {
 /** The single content box handed to every template. */
 export type SiteContent = {
   studioName: string;
+  /** Currency symbol (₹, $, …) resolved from the studio's Profile → Country. */
+  currencySymbol: string;
   hero: {
     active: boolean;
     badges: string[];

@@ -18,6 +18,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Reveal, Stagger, StaggerItem, Tilt, EASE } from "./motion";
 import { CommonSections } from "./common";
 import { initials } from "@/lib/initials";
+import { formatPrice } from "@/lib/data";
 import type { TemplateHomeProps } from "@/templates/types";
 
 const u = (id: string, w = 900) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=80`;
@@ -54,13 +55,6 @@ const Wrap = ({ children, className = "" }: { children: React.ReactNode; classNa
   <section className={`mx-auto w-full max-w-[1200px] px-5 sm:px-6 lg:px-8 xl:max-w-[1360px] xl:px-10 2xl:max-w-[1560px] 2xl:px-14 ${className}`}>{children}</section>
 );
 const cn = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(" ");
-/* Ensure a price shows a currency symbol: bare numbers ("50,000") get a ₹;
-   values that already start with a symbol or a word are left untouched. */
-const withCurrency = (v?: string) => {
-  const s = (v || "").trim();
-  if (!s || /^[₹$€£]/.test(s)) return s;
-  return /^[\d]/.test(s) ? `₹${s}` : s;
-};
 
 const Head = ({ eyebrow, title, desc, center = false }: { eyebrow: string; title: React.ReactNode; desc?: string; center?: boolean }) => {
   const cleanDesc = typeof desc === "string" ? stripHtml(desc) : desc;
@@ -146,6 +140,7 @@ const BADGE_STYLES = [
 ];
 
 export default function AriaHome({ content }: TemplateHomeProps) {
+  const sym = content?.currencySymbol || "₹";
   // ── Hero ──
   const h = content?.hero;
   const heroActive = h?.active !== false;
@@ -281,7 +276,7 @@ export default function AriaHome({ content }: TemplateHomeProps) {
                     <div className="p-4">
                       <div className="flex items-center justify-between">
                         <p className="font-bold text-[var(--a-ink)]">{s.name}</p>
-                        <span className="text-sm font-semibold text-[var(--a-green)]">{withCurrency(s.from)}</span>
+                        <span className="text-sm font-semibold text-[var(--a-green)]">{formatPrice(s.from, sym)}</span>
                       </div>
                       <p className="mt-1 line-clamp-2 text-xs leading-5 text-[var(--a-body)]">{s.desc}</p>
                     </div>
@@ -331,7 +326,7 @@ export default function AriaHome({ content }: TemplateHomeProps) {
                   {p.popular && <span className="absolute -top-3 left-6 rounded-full bg-[var(--a-gold)] px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow">Most booked</span>}
                   <p className="text-xs font-semibold uppercase tracking-wide text-[var(--a-body)]">{p.duration}</p>
                   <h3 className="font-playfair mt-1 text-xl font-extrabold text-[var(--a-ink)]">{p.name}</h3>
-                  <p className={cn("mt-2 text-3xl font-bold", p.popular ? "text-[var(--a-gold)]" : "text-[var(--a-ink)]")}>{withCurrency(p.price)}</p>
+                  <p className={cn("mt-2 text-3xl font-bold", p.popular ? "text-[var(--a-gold)]" : "text-[var(--a-ink)]")}>{formatPrice(p.price, sym)}</p>
                   <p className="mt-1 text-sm text-[var(--a-body)]">{p.bestFor}</p>
                   <ul className="mt-4 flex-1 space-y-2">
                     {p.includes.map((x, xi) => (

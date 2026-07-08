@@ -24,9 +24,56 @@ export const PHOTOS: Photo[] = [
 export type Service = {
   name: string;
   from: string;
+  fromMax?: string; // optional upper end of a price range
   img: number; // index into PHOTOS
   desc: string;
 };
+
+// Map a stored currency ("INR", "INR (₹)", or "₹") to just its symbol, so the
+// studio's Profile → Country choice drives the symbol shown on every price.
+const SYMBOL_BY_CODE: Record<string, string> = {
+  INR: "₹", USD: "$", GBP: "£", EUR: "€", AUD: "A$", CAD: "C$", AED: "د.إ",
+  SGD: "S$", NZD: "NZ$", CHF: "CHF", JPY: "¥", CNY: "¥", HKD: "HK$", MYR: "RM",
+  IDR: "Rp", THB: "฿", PHP: "₱", VND: "₫", ZAR: "R", NGN: "₦", KES: "KSh",
+  SAR: "﷼", QAR: "ر.ق", BDT: "৳", LKR: "Rs", NPR: "रू", PKR: "₨", BRL: "R$",
+  MXN: "MX$", ARS: "AR$", TRY: "₺", SEK: "kr", NOK: "kr", DKK: "kr", RUB: "₽",
+  KRW: "₩", EGP: "E£", ILS: "₪", PLN: "zł", CZK: "Kč",
+};
+
+export function symbolFromCurrency(currency?: string | null): string {
+  if (!currency) return "₹";
+  const s = String(currency).trim();
+  const paren = s.match(/\(([^)]+)\)/);                 // "INR (₹)" → "₹"
+  if (paren) return paren[1];
+  if (/^[A-Za-z]{3}$/.test(s) && SYMBOL_BY_CODE[s.toUpperCase()]) return SYMBOL_BY_CODE[s.toUpperCase()];
+  return s || "₹";                                       // already a symbol
+}
+
+/**
+ * Format one price value with the studio's currency symbol. Any symbol/ISO
+ * code the admin may have typed is stripped first so we never double up
+ * ("₹15,000" or "INR 15,000" both become "<symbol>15,000"). Non-numeric text
+ * (e.g. "On request") is returned untouched.
+ */
+export function formatPrice(value?: string, symbol = "₹"): string {
+  const raw = (value || "").trim();
+  if (!raw) return "";
+  const stripped = raw.replace(/^[A-Za-z]{3}\b[\s.]*/, "").replace(/^[^\d]+/, "").trim();
+  if (!/^\d/.test(stripped)) return raw;                 // free text, leave as-is
+  return `${symbol}${stripped}`;
+}
+
+/**
+ * Build the price string shown on cards. When a max is provided (and differs
+ * from the min) we render a range "min – max"; otherwise the single value.
+ * `isRange` lets callers swap the "Starting from" label for "Price range".
+ */
+export function priceRange(min?: string, max?: string, symbol = "₹"): { text: string; isRange: boolean } {
+  const lo = formatPrice(min, symbol);
+  const hi = formatPrice(max, symbol);
+  if (lo && hi && lo !== hi) return { text: `${lo} – ${hi}`, isRange: true };
+  return { text: lo || hi, isRange: false };
+}
 
 export const SERVICES: Service[] = [
   { name: "Wedding", from: "₹50,000", img: 0, desc: "Full-day story coverage, private gallery, guided portraits." },
@@ -41,6 +88,7 @@ export type Package = {
   id: string;
   name: string;
   price: string;
+  priceMax?: string; // optional upper end of a price range
   duration: string;
   bestFor: string;
   popular?: boolean;

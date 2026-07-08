@@ -15,6 +15,7 @@ const PORTFOLIO = [0, 2, 3, 4, 6, 7];
 export function getSiteContent(): SiteContent {
   return {
     studioName: "Aria Studio",
+    currencySymbol: "₹",
     hero: {
       active: true,
       badges: ["Verified studio", "4.9 · 186 clients", "Kolkata · Destination"],
