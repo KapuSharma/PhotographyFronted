@@ -12,8 +12,6 @@ import { useSiteStore } from "@/store/use-site-store";
 
 const API = process.env.NEXT_PUBLIC_API_URL;
 
-const DEFAULT_GREETING =
-  "Hi! 👋 I'm the studio assistant. Ask me about our services, packages, pricing, delivery timelines or how to book — happy to help!";
 const INITIAL_SUGGESTIONS = ["What packages do you offer?", "Are you free in December?", "How fast is delivery?"];
 
 type ChatMessage = { id: number; role: "user" | "assistant"; content: string };
@@ -101,7 +99,9 @@ export function FloatingChat({
   const setChatOpen = useSiteStore((s) => s.setChatOpen);
 
   const title = (assistantName || "").trim() || "Studio Assistant";
-  const greet = (greeting || "").trim() || DEFAULT_GREETING;
+  // Default greeting introduces the assistant by name; a custom greeting overrides it.
+  const greet = (greeting || "").trim()
+    || `Hi! 👋 I'm ${title}. Ask me about our services, packages, pricing, delivery timelines or how to book — happy to help!`;
 
   const [messages, setMessages] = useState<ChatMessage[]>([{ id: 0, role: "assistant", content: greet }]);
   const [suggestions, setSuggestions] = useState<string[]>(INITIAL_SUGGESTIONS);
